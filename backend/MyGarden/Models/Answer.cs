@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MyGarden.Models
 {
-    public class Answer
+    public class Answer : IEntityBase
     {
         public Answer(Profile author, string text)
         {
@@ -13,6 +13,7 @@ namespace MyGarden.Models
             Text = text;
         }
 
+        public Guid Id { get; set; }
         public Profile Author { get; set; }
         public string Text { get; set; }
     }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MyGarden.Models
 {
-    public class Issue
+    public class Issue : IEntityBase
     {
         public Issue(Profile author, Plant plant, string title, string description, string img_url)
         {
@@ -17,6 +17,8 @@ namespace MyGarden.Models
             Is_open = true;
             Answers = new List<Answer>();
         }
+
+        public Guid Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string Img_url { get; set; }

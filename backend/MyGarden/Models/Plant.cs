@@ -13,6 +13,7 @@ namespace MyGarden.Models
 
         }
 
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Scientific_name { get; set; }
         public string Description { get; set; }
