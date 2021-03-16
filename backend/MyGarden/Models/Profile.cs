@@ -17,7 +17,6 @@ namespace MyGarden.Models
             Last_name = null;
             Image = null;
 
-            //Friends = new List<Profile>();
             Plants = new List<Plant>();
             Issues = new List<Issue>();
         }
@@ -33,8 +32,8 @@ namespace MyGarden.Models
 
 
         //public ICollection<Profile> Friends { get; set; }
-        public ICollection<Friendship> Friendship { get; set; }
-        public ICollection<Plant> Plants { get; set; }
-        public ICollection<Issue> Issues { get; set; }
+        public virtual ICollection<Friendship> Friendship { get; set; } = new List<Friendship>();
+        public virtual ICollection<Plant> Plants { get; set; }
+        public virtual ICollection<Issue> Issues { get; set; }
     }
 }

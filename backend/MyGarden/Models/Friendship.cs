@@ -10,8 +10,9 @@ namespace MyGarden.Models
         public Guid Id { get; set; }
 
         public Guid Friend1Id { get; set; }
-        public Guid Friend2Id { get; set; }
         public Profile Friend1 { get; set; }
+
+        public Guid Friend2Id { get; set; }
         public Profile Friend2 { get; set; }
     }
 }
