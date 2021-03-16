@@ -58,14 +58,9 @@ namespace MyGarden.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ProfileId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Friend1Id", "Friend2Id");
 
                     b.HasIndex("Friend2Id");
-
-                    b.HasIndex("ProfileId");
 
                     b.ToTable("Friendships");
                 });
@@ -219,7 +214,7 @@ namespace MyGarden.Migrations
             modelBuilder.Entity("MyGarden.Models.Friendship", b =>
                 {
                     b.HasOne("MyGarden.Models.Profile", "Friend1")
-                        .WithMany()
+                        .WithMany("Friendship")
                         .HasForeignKey("Friend1Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -227,12 +222,7 @@ namespace MyGarden.Migrations
                     b.HasOne("MyGarden.Models.Profile", "Friend2")
                         .WithMany()
                         .HasForeignKey("Friend2Id")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("MyGarden.Models.Profile", null)
-                        .WithMany("Friendship")
-                        .HasForeignKey("ProfileId");
 
                     b.Navigation("Friend1");
 

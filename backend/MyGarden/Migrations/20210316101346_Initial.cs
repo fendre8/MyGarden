@@ -29,8 +29,7 @@ namespace MyGarden.Migrations
                 {
                     Friend1Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Friend2Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProfileId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,12 +43,6 @@ namespace MyGarden.Migrations
                     table.ForeignKey(
                         name: "FK_Friendships_Profiles_Friend2Id",
                         column: x => x.Friend2Id,
-                        principalTable: "Profiles",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Friendships_Profiles_ProfileId",
-                        column: x => x.ProfileId,
                         principalTable: "Profiles",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
@@ -155,11 +148,6 @@ namespace MyGarden.Migrations
                 name: "IX_Friendships_Friend2Id",
                 table: "Friendships",
                 column: "Friend2Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Friendships_ProfileId",
-                table: "Friendships",
-                column: "ProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Issues_AuthorId",
