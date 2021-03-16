@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Drawing;
 
 namespace MyGarden.Models
@@ -15,7 +17,7 @@ namespace MyGarden.Models
             Last_name = null;
             Image = null;
 
-            Friends = new List<Profile>();
+            //Friends = new List<Profile>();
             Plants = new List<Plant>();
             Issues = new List<Issue>();
         }
@@ -26,11 +28,13 @@ namespace MyGarden.Models
         public string Last_name { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
+        [NotMapped]
         public Image Image { get; set; }
 
 
-        public List<Profile> Friends { get; set; }
-        public List<Plant> Plants { get; set; }
-        public List<Issue> Issues { get; set; }
+        //public ICollection<Profile> Friends { get; set; }
+        public ICollection<Friendship> Friendship { get; set; }
+        public ICollection<Plant> Plants { get; set; }
+        public ICollection<Issue> Issues { get; set; }
     }
 }

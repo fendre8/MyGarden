@@ -7,10 +7,10 @@ namespace MyGarden.Models
 {
     public class Plant
     {
-        //TODO - Plant konstruktor
-        public Plant()
+        public Plant(string name, string scientific_name)
         {
-
+            Name = name;
+            Scientific_name = scientific_name;
         }
 
         public Guid Id { get; set; }

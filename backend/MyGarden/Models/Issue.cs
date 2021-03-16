@@ -7,10 +7,8 @@ namespace MyGarden.Models
 {
     public class Issue : IEntityBase
     {
-        public Issue(Profile author, Plant plant, string title, string description, string img_url)
+        public Issue(string title, string description, string img_url)
         {
-            Author = author;
-            Plant = plant;
             Title = title;
             Description = description;
             Img_url = img_url;
@@ -25,8 +23,9 @@ namespace MyGarden.Models
         public bool Is_open { get; set; }
 
         public Profile Author { get; set; }
+        public Guid AuthorId { get; set; }
         public Plant Plant { get; set; }
-        public List<Answer> Answers { get; set; }
+        public ICollection<Answer> Answers { get; set; }
 
     }
 }

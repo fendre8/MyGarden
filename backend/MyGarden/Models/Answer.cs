@@ -7,9 +7,8 @@ namespace MyGarden.Models
 {
     public class Answer : IEntityBase
     {
-        public Answer(Profile author, string text)
+        public Answer(string text)
         {
-            Author = author;
             Text = text;
         }
 
