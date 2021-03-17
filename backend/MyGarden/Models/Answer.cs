@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MyGarden.Models
 {
-    public class Answer : IEntityBase
+    public class Answer
     {
         public Answer(string text)
         {
