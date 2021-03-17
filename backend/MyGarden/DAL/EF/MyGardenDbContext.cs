@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MyGarden.Models;
+using MyGarden.DAL.EF.DbModels;
 
 namespace MyGarden.DAL.EF
 {
