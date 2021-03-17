@@ -37,6 +37,7 @@ namespace MyGarden
 
             services.AddDbContext<MyGardenDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("MyGardenDbContext")));
+            services.AddScoped<DAL.IProfilesRepository, DAL.ProfileRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
