@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -6,14 +7,10 @@ using System.Drawing;
 
 namespace MyGarden.DAL.EF.DbModels
 {
-    public class Profile : IEntityBase
+    public class ApplicationUser : IdentityUser<Guid>
     {
-        public Guid Id { get; set; }
-        public string Username { get; set; }
         public string First_name { get; set; }
         public string Last_name { get; set; }
-        public string Password { get; set; }
-        public string Email { get; set; }
         [NotMapped]
         public Image Image { get; set; }
 

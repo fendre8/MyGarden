@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace MyGarden.DAL.EF.DbModels
 {
-    interface IEntityBase
+    public class Response
     {
-        Guid Id { get; set; }
+        public string Status { get; set; }
+        public string Message { get; set; }
     }
 }

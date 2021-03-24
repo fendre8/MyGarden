@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MyGarden.DAL.EF.DbModels
 {
-    public class Issue : IEntityBase
+    public class Issue
     {
         public Guid Id { get; set; }
         public string Title { get; set; }
@@ -13,7 +13,7 @@ namespace MyGarden.DAL.EF.DbModels
         public string Img_url { get; set; }
         public bool Is_open { get; set; }
 
-        public Profile Author { get; set; }
+        public ApplicationUser Author { get; set; }
         public Guid AuthorId { get; set; }
         public Plant Plant { get; set; }
         public ICollection<Answer> Answers { get; set; }
