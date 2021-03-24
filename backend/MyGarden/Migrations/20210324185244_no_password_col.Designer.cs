@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyGarden.DAL.EF;
 
 namespace MyGarden.Migrations
 {
     [DbContext(typeof(MyGardenDbContext))]
-    partial class MyGardenDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210324185244_no_password_col")]
+    partial class no_password_col
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
