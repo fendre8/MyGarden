@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MyGarden.DAL;
 using MyGarden.Models;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace MyGarden.API.Controllers
 {
+    [Authorize]
     [Route("api/profiles")]
     [ApiController]
     public class ProfileController : ControllerBase
@@ -41,7 +43,7 @@ namespace MyGarden.API.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Profile> Create([FromBody] DAL.EF.DbModels.Profile value)
+        public ActionResult<Profile> Create([FromBody] DAL.EF.DbModels.ApplicationUser value)
         {
             try
             {
