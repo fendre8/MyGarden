@@ -18,37 +18,37 @@ namespace MyGarden.DAL
 
         public IReadOnlyCollection<Profile> List()
         {
-            return db.Profiles.Select(ToModel).ToList();
+            return db.ApplicationUsers.Select(ToModel).ToList();
         }
 
         public Profile FindById(Guid id)
         {
-            var dbRecord = db.Profiles.FirstOrDefault(p => p.Id == id);
+            var dbRecord = db.ApplicationUsers.FirstOrDefault(p => p.Id == id);
             if (dbRecord == null)
                 return null;
             else
                 return ToModel(dbRecord);
         }
 
-        public Profile Insert(EF.DbModels.Profile profile)
+        public Profile Insert(EF.DbModels.ApplicationUser profile)
         {
             using (var tran = db.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
             {
-                if (db.Profiles.Any(s => Microsoft.EntityFrameworkCore.EF.Functions.Like(s.Username, profile.Username)))
+                if (db.ApplicationUsers.Any(s => Microsoft.EntityFrameworkCore.EF.Functions.Like(s.UserName, profile.UserName)))
                     throw new ArgumentException("username must be unique");
 
-                var toInsert = new EF.DbModels.Profile() 
+                var toInsert = new EF.DbModels.ApplicationUser() 
                 { 
-                    Username = profile.Username,
+                    UserName = profile.UserName,
                     Email = profile.Email,
-                    Password = profile.Password,
+                    PasswordHash = profile.PasswordHash,
                 };
-                db.Profiles.Add(toInsert);
+                db.ApplicationUsers.Add(toInsert);
 
                 db.SaveChanges();
                 tran.Commit();
 
-                return new Profile(toInsert.Id, toInsert.Username, toInsert.Email, toInsert.Password);
+                return new Profile(toInsert.Id, toInsert.UserName, toInsert.Email, toInsert.PasswordHash);
             }
 
         }
@@ -57,9 +57,9 @@ namespace MyGarden.DAL
         {
             using (var tran = db.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
             {
-                var dbRecord = db.Profiles.FirstOrDefault(t => t.Id == profileId);
+                var dbRecord = db.ApplicationUsers.FirstOrDefault(t => t.Id == profileId);
 
-                db.Profiles.Remove(dbRecord);
+                db.ApplicationUsers.Remove(dbRecord);
                 db.SaveChanges();
                 tran.Commit();
 
@@ -67,9 +67,9 @@ namespace MyGarden.DAL
             }
         }
 
-        private static Profile ToModel(EF.DbModels.Profile value)
+        private static Profile ToModel(EF.DbModels.ApplicationUser value)
         {
-            return new Profile(value.Id, value.Username, value.Email, value.Password);
+            return new Profile(value.Id, value.UserName, value.Email, value.PasswordHash);
         }
 
     }

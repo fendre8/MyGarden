@@ -1,15 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MyGarden.DAL.EF.DbModels;
+using System;
 
 namespace MyGarden.DAL.EF
 {
-    public class MyGardenDbContext : DbContext
+    public class MyGardenDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
         public MyGardenDbContext(DbContextOptions<MyGardenDbContext> options) : base(options)
         {
         }
 
-        public DbSet<Profile> Profiles { get; set; }
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Plant> Plants { get; set; }
         public DbSet<Issue> Issues { get; set; }
         public DbSet<Answer> Answers { get; set; }
@@ -18,15 +21,16 @@ namespace MyGarden.DAL.EF
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             ConfigureModelBuilderForPlant(modelBuilder);
-            ConfigureModelBuilderForProfile(modelBuilder);
+            ConfigureModelBuilderForUsers(modelBuilder);
             ConfigureModelBuilderForAnswer(modelBuilder);
             ConfigureModelBuilderForIssue(modelBuilder);
         }
 
-        void ConfigureModelBuilderForProfile(ModelBuilder modelBuilder)
+        void ConfigureModelBuilderForUsers(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Profile>(entity =>
+            modelBuilder.Entity<ApplicationUser>(entity =>
             {
                 entity.ToTable("Profiles");
 
@@ -34,15 +38,12 @@ namespace MyGarden.DAL.EF
 
                 entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnName("ID");
 
-                entity.Property(e => e.Username)
+                entity.Property(e => e.UserName)
                     .HasMaxLength(50)
                     .IsRequired();
 
                 entity.Property(e => e.Email)
                     .HasMaxLength(50)
-                    .IsRequired();
-
-                entity.Property(e => e.Password)
                     .IsRequired();
 
                 entity.Property(e => e.First_name).HasMaxLength(50);

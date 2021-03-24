@@ -8,7 +8,7 @@ namespace MyGarden.DAL
     {
         IReadOnlyCollection<Profile> List();
         Profile FindById(Guid id);
-        Profile Insert(EF.DbModels.Profile profile);
+        Profile Insert(EF.DbModels.ApplicationUser profile);
         Profile Delete(Guid id);
     }
 }
