@@ -28,7 +28,7 @@ namespace MyGarden.Migrations
                     ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     First_name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Last_name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -159,13 +159,13 @@ namespace MyGarden.Migrations
                 name: "Friendships",
                 columns: table => new
                 {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Friend1Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Friend2Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Friend2Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Friendships", x => new { x.Friend1Id, x.Friend2Id });
+                    table.PrimaryKey("PK_Friendships", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Friendships_Profiles_Friend1Id",
                         column: x => x.Friend1Id,
@@ -302,6 +302,11 @@ namespace MyGarden.Migrations
                 name: "IX_AspNetUserRoles_RoleId",
                 table: "AspNetUserRoles",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Friendships_Friend1Id",
+                table: "Friendships",
+                column: "Friend1Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Friendships_Friend2Id",

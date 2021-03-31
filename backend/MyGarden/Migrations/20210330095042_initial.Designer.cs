@@ -10,7 +10,7 @@ using MyGarden.DAL.EF;
 namespace MyGarden.Migrations
 {
     [DbContext(typeof(MyGardenDbContext))]
-    [Migration("20210324145342_initial")]
+    [Migration("20210330095042_initial")]
     partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,6 +204,9 @@ namespace MyGarden.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Last_name")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -221,10 +224,6 @@ namespace MyGarden.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -261,16 +260,19 @@ namespace MyGarden.Migrations
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.Friendship", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("Friend1Id")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("Friend2Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
+                    b.HasKey("Id");
 
-                    b.HasKey("Friend1Id", "Friend2Id");
+                    b.HasIndex("Friend1Id");
 
                     b.HasIndex("Friend2Id");
 
