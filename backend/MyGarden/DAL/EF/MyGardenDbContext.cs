@@ -64,7 +64,7 @@ namespace MyGarden.DAL.EF
 
             modelBuilder.Entity<Friendship>(entity =>
             {
-                entity.HasKey(f => new { f.Friend1Id, f.Friend2Id });
+                entity.HasKey(f => f.Id);
 
                 entity.HasOne(f => f.Friend1)
                     .WithMany(p => p.Friendship)
