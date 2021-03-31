@@ -28,7 +28,7 @@ namespace MyGarden.API.Controllers
             return repository.List();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("id/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<Profile> Get(Guid id)
@@ -40,23 +40,36 @@ namespace MyGarden.API.Controllers
                 return Ok(value);
         }
 
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Profile> Create([FromBody] DAL.EF.DbModels.ApplicationUser value)
+        [HttpGet("name/{username}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<Profile> GetByUsername(string username)
         {
-            try
-            {
-                var created = repository.Insert(value);
-                return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var value = repository.FindByUserName(username);
+            if (value == null)
+                return NotFound();
+            else
+                return Ok(value);
         }
 
+        //[HttpPost]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public ActionResult<Profile> Create([FromBody] DAL.EF.DbModels.ApplicationUser value)
+        //{
+        //    try
+        //    {
+        //        var created = repository.Insert(value);
+        //        return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        return BadRequest(new { error = ex.Message });
+        //    }
+        //}
+
         [HttpDelete("{id}")]
+        [Authorize(Roles ="Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete(Guid id)
@@ -65,6 +78,20 @@ namespace MyGarden.API.Controllers
             if (task == null)
                 return NotFound();
             else return NoContent();
+        }
+
+        [HttpPost("friend")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult AddFriend([FromBody] AddFriendModel friendModel)
+        {
+            var friendship = repository.AddFriend(friendModel.username1, friendModel.username2);
+            if (friendship == null)
+            {
+                return BadRequest();
+            }
+            else
+                return Created(nameof(AddFriend),friendship);
         }
 
     }
