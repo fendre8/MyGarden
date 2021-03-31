@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MyGarden.DAL.EF;
 using MyGarden.DAL.EF.DbModels;
+using MyGarden.Models.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,6 +46,7 @@ namespace MyGarden
             services.AddDbContext<MyGardenDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("MyGardenDbContext")));
             services.AddScoped<DAL.IProfilesRepository, DAL.ProfileRepository>();
+            services.AddScoped<DAL.IPlantsRepository, DAL.PlantsRepository>();
 
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<MyGardenDbContext>()
@@ -100,6 +103,10 @@ namespace MyGarden
                 options.SlidingExpiration = true;
             });
 
+            var mappingConfig = new MapperConfiguration(mc =>
+                mc.AddProfile(new MappingProfile())
+            );
+            services.AddSingleton(mappingConfig.CreateMapper());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
