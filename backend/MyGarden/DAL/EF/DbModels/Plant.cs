@@ -8,6 +8,9 @@ namespace MyGarden.DAL.EF.DbModels
     public class Plant
     {
         public Guid Id { get; set; }
+        public string OpenfarmId { get; set; }
+        public int GrowstuffId { get; set; }
+
         public string Name { get; set; }
         public string Scientific_name { get; set; }
         public string Description { get; set; }

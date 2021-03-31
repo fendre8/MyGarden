@@ -11,11 +11,9 @@ namespace MyGarden.DAL.EF.DbModels
     {
         public string First_name { get; set; }
         public string Last_name { get; set; }
-        [NotMapped]
-        public Image Image { get; set; }
+        public string ImagePath { get; set; }
 
 
-        //public ICollection<Profile> Friends { get; set; }
         public virtual ICollection<Friendship> Friendship { get; set; } = new List<Friendship>();
         public virtual ICollection<Plant> Plants { get; set; } = new List<Plant>();
         public virtual ICollection<Issue> Issues { get; set; } = new List<Issue>();
