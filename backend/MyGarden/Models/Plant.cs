@@ -13,7 +13,7 @@ namespace MyGarden.Models
             Scientific_name = scientific_name;
         }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Scientific_name { get; set; }
         public string Description { get; set; }
@@ -25,7 +25,7 @@ namespace MyGarden.Models
         public double Row_spacing { get; set; }
         public string Sun_requirements { get; set; }
         public string Sowing_method { get; set; }
-        public string Img_url { get; set; }
+        public string thumbnail_url { get; set; }
 
         public DateTime Plant_time { get; set; }
     }
