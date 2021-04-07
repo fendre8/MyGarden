@@ -12,7 +12,7 @@ namespace MyGarden.Models
             Text = text;
         }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public Profile Author { get; set; }
         public string Text { get; set; }
     }

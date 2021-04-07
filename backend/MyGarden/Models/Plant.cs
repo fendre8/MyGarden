@@ -7,12 +7,6 @@ namespace MyGarden.Models
 {
     public class Plant
     {
-        public Plant(string name, string scientific_name)
-        {
-            Name = name;
-            Scientific_name = scientific_name;
-        }
-
         public int Id { get; set; }
         public string Name { get; set; }
         public string Scientific_name { get; set; }

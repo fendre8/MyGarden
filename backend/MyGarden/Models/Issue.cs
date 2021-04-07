@@ -7,16 +7,7 @@ namespace MyGarden.Models
 {
     public class Issue
     {
-        public Issue(string title, string description, string img_url)
-        {
-            Title = title;
-            Description = description;
-            Img_url = img_url;
-            Is_open = true;
-            Answers = new List<Answer>();
-        }
-
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string Img_url { get; set; }
