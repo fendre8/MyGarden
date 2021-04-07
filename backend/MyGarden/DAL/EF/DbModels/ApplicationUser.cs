@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace MyGarden.DAL.EF.DbModels
 {
-    public class ApplicationUser : IdentityUser<Guid>
+    public class ApplicationUser : IdentityUser<int>
     {
         public string First_name { get; set; }
         public string Last_name { get; set; }

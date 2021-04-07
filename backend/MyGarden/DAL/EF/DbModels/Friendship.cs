@@ -7,12 +7,12 @@ namespace MyGarden.DAL.EF.DbModels
 {
     public class Friendship
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public Guid Friend1Id { get; set; }
+        public int Friend1Id { get; set; }
         public ApplicationUser Friend1 { get; set; }
 
-        public Guid Friend2Id { get; set; }
+        public int Friend2Id { get; set; }
         public ApplicationUser Friend2 { get; set; }
     }
 }

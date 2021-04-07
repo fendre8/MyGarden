@@ -7,7 +7,7 @@ namespace MyGarden.DAL.EF.DbModels
 { 
     public class Plant
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string OpenfarmId { get; set; }
         public int GrowstuffId { get; set; }
 

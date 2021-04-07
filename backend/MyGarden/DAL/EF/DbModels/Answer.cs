@@ -12,7 +12,7 @@ namespace MyGarden.DAL.EF.DbModels
             Text = text;
         }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public ApplicationUser Author { get; set; }
         public string Text { get; set; }
     }
