@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyGarden.Models
+namespace MyGarden.API.DTO
 {
     public class FriendshipResponse
     {
