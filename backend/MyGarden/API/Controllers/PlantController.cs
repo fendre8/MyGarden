@@ -26,6 +26,17 @@ namespace MyGarden.API.Controllers
             return await repository.List();
         }
 
+        [HttpPost("find")]
+        public async Task<ActionResult> AddPlant(/*[FromBody] DAL.EF.DbModels.Plant plant*/string plantname)
+        {
+            //await repository.GetTokenFromOpenFarm();
+            //await repository.AddPlant(plant);
+            var result = await repository.FindPlantByName(plantname);
+
+
+            return Ok(result);
+        }
+
 
     }
 }
