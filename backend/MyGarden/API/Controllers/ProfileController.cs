@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MyGarden.API.DTO;
 using MyGarden.DAL;
 using MyGarden.Models;
 using System;
@@ -31,7 +32,7 @@ namespace MyGarden.API.Controllers
         [HttpGet("id/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Profile> Get(Guid id)
+        public ActionResult<Profile> Get(int id)
         {
             var value = repository.FindById(id);
             if (value == null)
@@ -72,7 +73,7 @@ namespace MyGarden.API.Controllers
         [Authorize(Roles ="Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult Delete(Guid id)
+        public ActionResult Delete(int id)
         {
             var task = repository.Delete(id);
             if (task == null)
@@ -94,5 +95,30 @@ namespace MyGarden.API.Controllers
                 return Created(nameof(AddFriend),friendship);
         }
 
+        [HttpPost("issue")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<NewIssueResponse> CreateIssue([FromBody] NewIssueModel issue)
+        {
+            var user = repository.FindByUserName(issue.Username);
+            if (user == null)
+                return BadRequest();
+            var plant = repository.GetPlantById(issue.PlantId);
+            if (plant == null)
+                return BadRequest();
+            var result = repository.CreateIssueForPlant(issue);
+
+            return new NewIssueResponse
+            {
+                Id = result.Id,
+                Author = result.Author.Username,
+                Plant = result.Plant.Name,
+                Title = result.Title,
+                Description = result.Description,
+                Is_open = result.Is_open,
+                Img_url = result.Img_url,
+                Answers = new List<string>()
+            };
+        }
     }
 }

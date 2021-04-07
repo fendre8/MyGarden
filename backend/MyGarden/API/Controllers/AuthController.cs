@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using MyGarden.API.DTO;
 using MyGarden.DAL.EF.DbModels;
 using System;
 using System.Collections.Generic;
@@ -20,10 +21,10 @@ namespace MyGarden.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> userManager;
-        private readonly RoleManager<IdentityRole<Guid>> roleManager;
+        private readonly RoleManager<IdentityRole<int>> roleManager;
         private readonly IConfiguration _configuration;
 
-        public AuthController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
+        public AuthController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager, IConfiguration configuration)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
@@ -110,9 +111,9 @@ namespace MyGarden.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
 
             if (!await roleManager.RoleExistsAsync(UserRoles.Admin))
-                await roleManager.CreateAsync(new IdentityRole<Guid>(UserRoles.Admin));
+                await roleManager.CreateAsync(new IdentityRole<int>(UserRoles.Admin));
             if (!await roleManager.RoleExistsAsync(UserRoles.User))
-                await roleManager.CreateAsync(new IdentityRole<Guid>(UserRoles.User));
+                await roleManager.CreateAsync(new IdentityRole<int>(UserRoles.User));
 
             if (await roleManager.RoleExistsAsync(UserRoles.Admin))
             {
