@@ -48,7 +48,7 @@ namespace MyGarden
             services.AddScoped<DAL.IProfilesRepository, DAL.ProfileRepository>();
             services.AddScoped<DAL.IPlantsRepository, DAL.PlantsRepository>();
 
-            services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+            services.AddIdentity<ApplicationUser, IdentityRole<int>>()
                 .AddEntityFrameworkStores<MyGardenDbContext>()
                 .AddDefaultTokenProviders();
 
