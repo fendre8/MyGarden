@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MyGarden.API.DTO;
 using MyGarden.DAL.EF;
 using MyGarden.Models;
 using System;
@@ -27,7 +28,7 @@ namespace MyGarden.DAL
                 .ToList();
         }
 
-        public Profile FindById(Guid id)
+        public Profile FindById(int id)
         {
             var dbRecord = db.ApplicationUsers.FirstOrDefault(p => p.Id == id);
             if (dbRecord == null)
@@ -73,7 +74,7 @@ namespace MyGarden.DAL
 
         }
 
-        public Profile Delete(Guid profileId)
+        public Profile Delete(int profileId)
         {
             using (var tran = db.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
             {
@@ -108,6 +109,62 @@ namespace MyGarden.DAL
                 trans.Commit();
                 return new FriendshipResponse { User1 = dbUser1.UserName, User2 = dbUser2.UserName };
             }
+        }
+
+        public Response InviteFriend(string username)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Response AcceptFriendRequest()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Plant(Plant plant)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Plant GetPlantById(int id)
+        {
+            var plant = db.Plants.FirstOrDefault(p => p.Id == id);
+            if (plant == null)
+                return null;
+            else return mapper.Map<Plant>(plant);
+        }
+
+        public Issue CreateIssueForPlant(NewIssueModel issue)
+        {
+            var toInsert = new EF.DbModels.Issue
+            {
+                Title = issue.Title,
+                Description = issue.Description,
+                Author = db.ApplicationUsers.FirstOrDefault(u => u.UserName == issue.Username),
+                Plant = db.Plants.FirstOrDefault(p => p.Id == issue.PlantId),
+                Is_open = true
+            };
+            db.Issues.Add(toInsert);
+
+            db.SaveChanges();
+
+            return new Issue
+            {
+                Title = toInsert.Title,
+                Description = toInsert.Description,
+                Author = mapper.Map<Profile>(toInsert.Author),
+                Plant = mapper.Map<Plant>(toInsert.Plant),
+                Id = toInsert.Id,
+                Is_open = toInsert.Is_open,
+                Answers = null,
+                Img_url = null
+            };
+
+        }
+
+        public void AddCommentForIssue(Issue issue, Answer answer)
+        {
+            throw new NotImplementedException();
         }
 
         //private static Profile ToModel(EF.DbModels.ApplicationUser value)

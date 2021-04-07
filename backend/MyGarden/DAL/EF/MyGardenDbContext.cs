@@ -6,7 +6,7 @@ using System;
 
 namespace MyGarden.DAL.EF
 {
-    public class MyGardenDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+    public class MyGardenDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
     {
         public MyGardenDbContext(DbContextOptions<MyGardenDbContext> options) : base(options)
         {
@@ -55,10 +55,6 @@ namespace MyGarden.DAL.EF
                 entity.HasMany(e => e.Issues)
                     .WithOne(i => i.Author)
                     .HasForeignKey(i => i.AuthorId);
-
-                //entity.HasMany(e => e.Friends)
-                //    .WithMany(e => e.Friends)
-                //    .UsingEntity(f => f.ToTable("Friendship"));
 
             });
 
