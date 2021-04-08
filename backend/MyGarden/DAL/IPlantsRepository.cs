@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyGarden.API.DTO;
+using MyGarden.API.DTO.Growstuff;
 using MyGarden.Models;
 using System;
 using System.Collections.Generic;
@@ -10,13 +11,17 @@ namespace MyGarden.DAL
 {
     public interface IPlantsRepository
     {
-        Task<Action> GetTokenFromOpenFarm();
+        //Task<string> GetTokenFromOpenFarm();
 
         Task<IEnumerable<Plant>> List();
 
-        Task<ActionResult> AddPlant(EF.DbModels.Plant plant);
+        Task<Plant> AddPlant(string plantName);
 
-        Task<OFPlantResult> FindPlantByName(string plantName);
+        Task<OFPlantResult> OfFindPlantByName(string plantName);
+
+        Task<GsPlantResult> GsFindPlantByName(string plantName);
+
+        Plant GetPlantById(int id);
 
     }
 }

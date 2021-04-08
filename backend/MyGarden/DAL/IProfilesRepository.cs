@@ -17,11 +17,5 @@ namespace MyGarden.DAL
 
         Response InviteFriend(string username);
         Response AcceptFriendRequest();
-
-        void Plant(Plant plant);
-        Plant GetPlantById(int id);
-        Issue CreateIssueForPlant(NewIssueModel issue);
-
-        void AddCommentForIssue(Issue issue, Answer answer);
     }
 }
