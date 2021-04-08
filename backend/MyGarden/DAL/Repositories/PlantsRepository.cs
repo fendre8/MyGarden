@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyGarden.API.DTO;
+using MyGarden.API.DTO.Growstuff;
 using MyGarden.API.DTO.Openfarm;
 using MyGarden.DAL.EF;
 using MyGarden.Models;
@@ -10,7 +11,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MyGarden.DAL
@@ -19,9 +19,11 @@ namespace MyGarden.DAL
     {
         private readonly Uri growstuffpath = new Uri("http://growstuff.org/");
         private readonly Uri openfarmpath = new Uri("https://openfarm.cc/api/v1/");
-        private string openfarmToken;
+        private string openfarmToken = null;
+        private DateTime tokenExpirationTime = new DateTime();
 
-        private readonly HttpClient client = new HttpClient();
+        private readonly HttpClient gsClient = new HttpClient();
+        private readonly HttpClient ofClient = new HttpClient();
 
         private readonly AutoMapper.IMapper mapper;
         private readonly MyGardenDbContext db;
@@ -30,30 +32,31 @@ namespace MyGarden.DAL
         {
             this.db = db;
             this.mapper = mapper;
+            gsClient.BaseAddress = growstuffpath;
+            ofClient.BaseAddress = openfarmpath;
         }
 
-        public async Task<Action> GetTokenFromOpenFarm()
+        private async Task<string> GetTokenFromOpenFarm()
         {
-            var login = new OpenfarmLogin { email = "fendre80@gmail.com", password = "12345678" };
-            var loginData = JsonConvert.SerializeObject(login);
-            //client.DefaultRequestHeaders.Accept.Clear();
-            //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var loginData = JsonConvert.SerializeObject(new OpenfarmLogin { email = "fendre80@gmail.com", password = "12345678" });
+            ofClient.DefaultRequestHeaders.Accept.Clear();
+            ofClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var content = new StringContent(loginData, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await client.PostAsync(openfarmpath + "token/", content);
+            HttpResponseMessage response = await ofClient.PostAsync("token/", content);
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                var loginresult = JsonConvert.DeserializeObject<OpenfarmLoginResult>(result);
-                openfarmToken = loginresult.data.attributes.secret;
+                var result = await response.Content.ReadAsAsync<OpenfarmLoginResult>();
+                openfarmToken = result.data.attributes.secret;
+                tokenExpirationTime = result.data.attributes.expiration;
             }
-            return null;
+            return openfarmToken;
         }
 
 
         public async Task<IEnumerable<Plant>> List()
         {
             List<Plant> plants = null;
-            HttpResponseMessage response = await client.GetAsync(growstuffpath + "crops.json");
+            HttpResponseMessage response = await gsClient.GetAsync("crops.json");
             if (response.IsSuccessStatusCode)
             {
                 plants = await response.Content.ReadAsAsync<List<Plant>>();
@@ -61,13 +64,16 @@ namespace MyGarden.DAL
             return plants;
         }
 
-        public async Task<OFPlantResult> FindPlantByName(string plantName)
+        public async Task<OFPlantResult> OfFindPlantByName(string plantName)
         {
-            client.BaseAddress = openfarmpath;
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + openfarmToken);
-            var response = await client.GetAsync("crops/?filter=" + plantName);
+            if (tokenExpirationTime < DateTime.Now)
+            {
+                await GetTokenFromOpenFarm();
+            }
+            ofClient.DefaultRequestHeaders.Accept.Clear();
+            ofClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            ofClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + openfarmToken);
+            var response = await ofClient.GetAsync("crops/?filter=" + plantName);
             if (response.IsSuccessStatusCode)
             {
                 var plant = await response.Content.ReadAsAsync<OFPlantResult>();
@@ -76,9 +82,75 @@ namespace MyGarden.DAL
             return null;
         }
 
-        public async Task<ActionResult> AddPlant(EF.DbModels.Plant plant)
+        public async Task<GsPlantResult> GsFindPlantByName(string plantName)
         {
+            gsClient.DefaultRequestHeaders.Accept.Clear();
+            var response = await gsClient.GetAsync("crops/" + plantName + ".json");
+            if (response.IsSuccessStatusCode)
+            {
+                var plant = await response.Content.ReadAsAsync<GsPlantResult>();
+                return plant;
+            }
             return null;
+        }
+
+
+        public async Task<Plant> AddPlant(string plantName)
+        {
+            var ofPlants = await OfFindPlantByName(plantName);
+
+            var gsPlant = await GsFindPlantByName(plantName);
+
+            var ofPlant = ofPlants.data.FirstOrDefault(p => p.attributes.binomial_name == gsPlant.scientific_names[0].name);
+
+            var plant = new EF.DbModels.Plant()
+            {
+                GrowstuffId = gsPlant.id,
+                OpenfarmId = ofPlant.id,
+                Name = ofPlant.attributes.name,
+                Scientific_name = ofPlant.attributes.binomial_name,
+                Description = ofPlant.attributes.description,
+                First_harvest_exp = new string(gsPlant.median_days_to_first_harvest.GetValueOrDefault() + " days"),
+                Last_harvest_exp = new string(gsPlant.median_days_to_last_harvest.GetValueOrDefault() + " days"),
+                Height = ofPlant.attributes.height.GetValueOrDefault(),
+                Spread = ofPlant.attributes.spread.GetValueOrDefault(),
+                Median_lifespan = new string(gsPlant.median_lifespan + " days"),
+                Row_spacing = ofPlant.attributes.row_spacing.GetValueOrDefault(),
+                Sun_requirements = ofPlant.attributes.sun_requirements,
+                Sowing_method = ofPlant.attributes.sowing_method,
+                Img_url = ofPlant.attributes.main_image_path,
+                Plant_time = DateTime.Now
+            };
+
+
+            await db.Plants.AddAsync(plant);
+            await db.SaveChangesAsync();
+
+            return new Plant
+            {
+                Id = plant.Id,
+                Name = plant.Name,
+                Description = plant.Description,
+                Scientific_name = plant.Scientific_name,
+                First_harvest_exp = plant.First_harvest_exp,
+                Last_harvest_exp = plant.Last_harvest_exp,
+                Height = plant.Height,
+                Spread = plant.Spread,
+                Row_spacing = plant.Row_spacing,
+                Sowing_method = plant.Sowing_method,
+                Median_lifespan = plant.Median_lifespan,
+                Sun_requirements = plant.Sun_requirements,
+                thumbnail_url = plant.Img_url,
+                Plant_time = plant.Plant_time
+            };
+        }
+
+        public Plant GetPlantById(int id)
+        {
+            var plant = db.Plants.FirstOrDefault(p => p.Id == id);
+            if (plant == null)
+                return null;
+            else return mapper.Map<Plant>(plant);
         }
 
     }

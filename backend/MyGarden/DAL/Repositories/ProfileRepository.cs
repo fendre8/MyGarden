@@ -23,8 +23,11 @@ namespace MyGarden.DAL
         {
             return db
                 .ApplicationUsers
-                .Include(p => p.Friendship)
-                .Select(mapper.Map<Profile>)
+                .Include(u => u.Friendship)
+                .ThenInclude(f => f.Friend2)
+                .Include(u => u.Friendship)
+                .ThenInclude(f => f.Friend1)
+                .Select(ToModel)
                 .ToList();
         }
 
@@ -39,11 +42,16 @@ namespace MyGarden.DAL
 
         public Profile FindByUserName(string username)
         {
-            var dbRecord = db.ApplicationUsers.FirstOrDefault(p => p.NormalizedUserName == username.Normalize());
+            var dbRecord = db.ApplicationUsers
+                .Include(f => f.Friendship)
+                .ThenInclude(u => u.Friend2)
+                .Include(u => u.Friendship)
+                .ThenInclude(f => f.Friend1)
+                .FirstOrDefault(p => p.NormalizedUserName == username.Normalize());
             if (dbRecord == null)
                 return null;
             else
-                return mapper.Map<Profile>(dbRecord);
+                return ToModel(dbRecord);
         }
 
         public Profile Insert(EF.DbModels.ApplicationUser profile)
@@ -121,65 +129,25 @@ namespace MyGarden.DAL
             throw new NotImplementedException();
         }
 
-        public void Plant(Plant plant)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Plant GetPlantById(int id)
+        private static Profile ToModel(EF.DbModels.ApplicationUser value)
         {
-            var plant = db.Plants.FirstOrDefault(p => p.Id == id);
-            if (plant == null)
-                return null;
-            else return mapper.Map<Plant>(plant);
-        }
+            var friends1 = value.Friendship.Where(f => f.Friend1.UserName == value.UserName).Select(f => f.Friend2.UserName);
+            var friends2 = value.Friendship.Where(f => f.Friend2.UserName == value.UserName).Select(f => f.Friend1.UserName);
 
-        public Issue CreateIssueForPlant(NewIssueModel issue)
-        {
-            var toInsert = new EF.DbModels.Issue
+            var profile = new Profile
             {
-                Title = issue.Title,
-                Description = issue.Description,
-                Author = db.ApplicationUsers.FirstOrDefault(u => u.UserName == issue.Username),
-                Plant = db.Plants.FirstOrDefault(p => p.Id == issue.PlantId),
-                Is_open = true
-            };
-            db.Issues.Add(toInsert);
-
-            db.SaveChanges();
-
-            return new Issue
-            {
-                Title = toInsert.Title,
-                Description = toInsert.Description,
-                Author = mapper.Map<Profile>(toInsert.Author),
-                Plant = mapper.Map<Plant>(toInsert.Plant),
-                Id = toInsert.Id,
-                Is_open = toInsert.Is_open,
-                Answers = null,
-                Img_url = null
+                Id = value.Id,
+                Username = value.UserName,
+                Email = value.Email,
+                Plants = value.Plants.Select(p => p.Name).ToList(),
             };
 
+            profile.Friends.AddRange(friends1);
+            profile.Friends.AddRange(friends2);
+
+            return profile;
         }
-
-        public void AddCommentForIssue(Issue issue, Answer answer)
-        {
-            throw new NotImplementedException();
-        }
-
-        //private static Profile ToModel(EF.DbModels.ApplicationUser value)
-        //{
-        //    var profile =  new Profile
-        //    {
-        //        Id = value.Id,
-        //        Username = value.UserName,
-        //        Email = value.Email,
-        //        Plants = value.Plants.Select(p => p.Name).ToList(),
-        //        Friends = value.Friendship.Select(p => p.Friend1.UserName).ToList()
-        //    };
-
-        //    return profile;
-        //}
 
     }
 }
