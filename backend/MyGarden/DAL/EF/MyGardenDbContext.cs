@@ -68,8 +68,7 @@ namespace MyGarden.DAL.EF
 
                 entity.HasOne(f => f.Friend2)
                     .WithMany()
-                    .HasForeignKey(f => f.Friend2Id)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .HasForeignKey(f => f.Friend2Id);
             });
         }
 
