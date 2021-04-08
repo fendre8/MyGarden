@@ -95,30 +95,5 @@ namespace MyGarden.API.Controllers
                 return Created(nameof(AddFriend),friendship);
         }
 
-        [HttpPost("issue")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<NewIssueResponse> CreateIssue([FromBody] NewIssueModel issue)
-        {
-            var user = repository.FindByUserName(issue.Username);
-            if (user == null)
-                return BadRequest();
-            var plant = repository.GetPlantById(issue.PlantId);
-            if (plant == null)
-                return BadRequest();
-            var result = repository.CreateIssueForPlant(issue);
-
-            return new NewIssueResponse
-            {
-                Id = result.Id,
-                Author = result.Author.Username,
-                Plant = result.Plant.Name,
-                Title = result.Title,
-                Description = result.Description,
-                Is_open = result.Is_open,
-                Img_url = result.Img_url,
-                Answers = new List<string>()
-            };
-        }
     }
 }
