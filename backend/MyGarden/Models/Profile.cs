@@ -15,7 +15,7 @@ namespace MyGarden.Models
         public string Email { get; set; }
         public Image Image { get; set; }
 
-        public List<FriendshipDTO> Friends { get; set; } = new List<FriendshipDTO>();
+        public List<string> Friends { get; set; } = new List<string>();
         public ICollection<string> Plants { get; set; } = new List<string>();
         public ICollection<string> Issues { get; set; } = new List<string>();
 
