@@ -95,7 +95,7 @@ namespace MyGarden.DAL
         }
 
 
-        public async Task<Plant> AddPlant(string plantName)
+        public async Task<Plant> AddPlant(string plantName, string username = null)
         {
             var ofPlants = await OfFindPlantByName(plantName);
 
@@ -124,6 +124,12 @@ namespace MyGarden.DAL
 
 
             await db.Plants.AddAsync(plant);
+            if (username != null)
+            {
+                var user = db.ApplicationUsers.FirstOrDefault(u => u.UserName == username);
+                if (user != null)
+                    user.Plants.Add(plant);
+            }
             await db.SaveChangesAsync();
 
             return new Plant
@@ -151,6 +157,38 @@ namespace MyGarden.DAL
             if (plant == null)
                 return null;
             else return mapper.Map<Plant>(plant);
+        }
+
+        public async Task<Plant> GetPlantByName(string name)
+        {
+            var ofPlants = await OfFindPlantByName(name);
+
+            var gsPlant = await GsFindPlantByName(name);
+
+            if (ofPlants == null || gsPlant == null)
+            {
+                return null;
+            }
+
+            var ofPlant = ofPlants.data.FirstOrDefault(p => p.attributes.binomial_name == gsPlant.scientific_names[0].name);
+
+            return new Plant
+            {
+                Name = ofPlant.attributes.name,
+                Scientific_name = ofPlant.attributes.binomial_name,
+                Description = ofPlant.attributes.description,
+                First_harvest_exp = new string(gsPlant.median_days_to_first_harvest.GetValueOrDefault() + " days"),
+                Last_harvest_exp = new string(gsPlant.median_days_to_last_harvest.GetValueOrDefault() + " days"),
+                Height = ofPlant.attributes.height.GetValueOrDefault(),
+                Spread = ofPlant.attributes.spread.GetValueOrDefault(),
+                Median_lifespan = new string(gsPlant.median_lifespan + " days"),
+                Row_spacing = ofPlant.attributes.row_spacing.GetValueOrDefault(),
+                Sun_requirements = ofPlant.attributes.sun_requirements,
+                Sowing_method = ofPlant.attributes.sowing_method,
+                thumbnail_url = ofPlant.attributes.main_image_path,
+                Plant_time = DateTime.Now
+            };
+
         }
 
     }

@@ -5,6 +5,7 @@ using MyGarden.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyGarden.DAL
 {
@@ -19,44 +20,49 @@ namespace MyGarden.DAL
             this.mapper = mapper;
         }
 
-        public IReadOnlyCollection<Profile> List()
+        public async Task<IReadOnlyCollection<Profile>> List()
         {
             return db
                 .ApplicationUsers
-                .Include(u => u.Friendship)
-                .ThenInclude(f => f.Friend2)
-                .Include(u => u.Friendship)
-                .ThenInclude(f => f.Friend1)
+                .Include(u => u.FriendshipTo).ThenInclude(f => f.FriendTo)
+                .Include(u => u.FriendshipFrom).ThenInclude(f => f.FriendFrom)
+                .Include(u => u.Plants)
+                .AsSplitQuery()
                 .Select(ToModel)
                 .ToList();
         }
 
-        public Profile FindById(int id)
+        public async Task<Profile> FindById(int id)
         {
-            var dbRecord = db.ApplicationUsers.FirstOrDefault(p => p.Id == id);
-            if (dbRecord == null)
-                return null;
-            else
-                return mapper.Map<Profile>(dbRecord);
-        }
-
-        public Profile FindByUserName(string username)
-        {
-            var dbRecord = db.ApplicationUsers
-                .Include(f => f.Friendship)
-                .ThenInclude(u => u.Friend2)
-                .Include(u => u.Friendship)
-                .ThenInclude(f => f.Friend1)
-                .FirstOrDefault(p => p.NormalizedUserName == username.Normalize());
+            var dbRecord = await db.ApplicationUsers
+                    .Include(u => u.FriendshipTo).ThenInclude(f => f.FriendTo)
+                    .Include(u => u.FriendshipFrom).ThenInclude(f => f.FriendFrom)
+                    .Include(u => u.Plants)
+                    .AsSplitQuery()
+                    .FirstOrDefaultAsync(p => p.Id == id);
             if (dbRecord == null)
                 return null;
             else
                 return ToModel(dbRecord);
         }
 
-        public Profile Insert(EF.DbModels.ApplicationUser profile)
+        public async Task<Profile> FindByUserName(string username)
         {
-            using (var tran = db.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
+            var dbRecord = await db.ApplicationUsers
+                .Include(u => u.FriendshipTo).ThenInclude(f => f.FriendTo)
+                .Include(u => u.FriendshipFrom).ThenInclude(f => f.FriendFrom)
+                .Include(u => u.Plants)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(p => p.NormalizedUserName == username.Normalize());
+            if (dbRecord == null)
+                return null;
+            else
+                return ToModel(dbRecord);
+        }
+
+        public async Task<Profile> Insert(EF.DbModels.ApplicationUser profile)
+        {
+            using (var tran = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead))
             {
                 if (db.ApplicationUsers.Any(s => Microsoft.EntityFrameworkCore.EF.Functions.Like(s.UserName, profile.UserName)))
                     throw new ArgumentException("username must be unique");
@@ -69,12 +75,12 @@ namespace MyGarden.DAL
                 };
                 db.ApplicationUsers.Add(toInsert);
 
-                db.SaveChanges();
-                tran.Commit();
+                await db.SaveChangesAsync();
+                await tran.CommitAsync();
 
                 return new Profile
                 {
-                    Id = profile.Id,
+                    Id = toInsert.Id,
                     Username = profile.UserName,
                     Email = profile.Email
                 };
@@ -82,40 +88,41 @@ namespace MyGarden.DAL
 
         }
 
-        public Profile Delete(int profileId)
+        public async Task<Profile> Delete(int profileId)
         {
-            using (var tran = db.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
+            using (var tran = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead))
             {
-                var dbRecord = db.ApplicationUsers.FirstOrDefault(t => t.Id == profileId);
+                var dbRecord = await db.ApplicationUsers.FirstOrDefaultAsync(t => t.Id == profileId);
 
                 db.ApplicationUsers.Remove(dbRecord);
-                db.SaveChanges();
-                tran.Commit();
+                await db.SaveChangesAsync();
+                await tran.CommitAsync();
 
                 return dbRecord == null ? null : mapper.Map<Profile>(dbRecord);
             }
         }
 
-        public FriendshipResponse AddFriend(string username1, string username2)
+        public async Task<FriendshipResponse> AddFriend(string FriendFrom, string FriendTo)
         {
-            using (var trans = db.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead))
+            using (var trans = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead))
             {
-                var dbUser1 = db.ApplicationUsers.FirstOrDefault(p => p.NormalizedUserName == username1.Normalize());
-                var dbUser2 = db.ApplicationUsers.FirstOrDefault(p => p.NormalizedUserName == username2.Normalize());
-                if (dbUser1 == null || dbUser2 == null)
+                var dbUserFrom = await db.ApplicationUsers.FirstOrDefaultAsync(p => p.NormalizedUserName == FriendFrom.Normalize());
+                var dbUserTo = await db.ApplicationUsers.FirstOrDefaultAsync(p => p.NormalizedUserName == FriendTo.Normalize());
+                if (dbUserFrom == null || dbUserTo == null)
                     return null;
                 var toInsert = new EF.DbModels.Friendship()
                 {
-                    Friend1 = dbUser1,
-                    Friend1Id = dbUser1.Id,
-                    Friend2 = dbUser2,
-                    Friend2Id = dbUser2.Id
+                    FriendFrom = dbUserFrom,
+                    FromId = dbUserFrom.Id,
+                    FriendTo = dbUserTo,
+                    ToId = dbUserTo.Id
                 };
+
                 db.Friendships.Add(toInsert);
 
-                db.SaveChanges();
-                trans.Commit();
-                return new FriendshipResponse { User1 = dbUser1.UserName, User2 = dbUser2.UserName };
+                await db.SaveChangesAsync();
+                await trans.CommitAsync();
+                return new FriendshipResponse { FriendFrom = dbUserFrom.UserName, FriendTo = dbUserTo.UserName };
             }
         }
 
@@ -132,8 +139,8 @@ namespace MyGarden.DAL
 
         private static Profile ToModel(EF.DbModels.ApplicationUser value)
         {
-            var friends1 = value.Friendship.Where(f => f.Friend1.UserName == value.UserName).Select(f => f.Friend2.UserName);
-            var friends2 = value.Friendship.Where(f => f.Friend2.UserName == value.UserName).Select(f => f.Friend1.UserName);
+            var friends1 = value.FriendshipFrom.Select(f => f.FriendFrom.UserName);
+            var friends2 = value.FriendshipTo.Select(f => f.FriendTo.UserName);
 
             var profile = new Profile
             {
@@ -143,8 +150,8 @@ namespace MyGarden.DAL
                 Plants = value.Plants.Select(p => p.Name).ToList(),
             };
 
-            profile.Friends.AddRange(friends1);
-            profile.Friends.AddRange(friends2);
+                profile.Friends.AddRange(friends1);
+                profile.Friends.AddRange(friends2);
 
             return profile;
         }

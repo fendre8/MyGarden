@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyGarden.DAL.EF;
 
 namespace MyGarden.Migrations
 {
     [DbContext(typeof(MyGardenDbContext))]
-    partial class MyGardenDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210411180622_friendship_bug")]
+    partial class friendship_bug
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -261,15 +263,27 @@ namespace MyGarden.Migrations
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.Friendship", b =>
                 {
-                    b.Property<int>("FromId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int?>("ApplicationUserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ToId")
+                    b.Property<int>("Friend1Id")
                         .HasColumnType("int");
 
-                    b.HasKey("FromId", "ToId");
+                    b.Property<int>("Friend2Id")
+                        .HasColumnType("int");
 
-                    b.HasIndex("ToId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("Friend1Id");
+
+                    b.HasIndex("Friend2Id");
 
                     b.ToTable("Friendships");
                 });
@@ -447,21 +461,25 @@ namespace MyGarden.Migrations
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.Friendship", b =>
                 {
-                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "FriendFrom")
-                        .WithMany("FriendshipTo")
-                        .HasForeignKey("FromId")
+                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", null)
+                        .WithMany("Friendship")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "Friend1")
+                        .WithMany()
+                        .HasForeignKey("Friend1Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "FriendTo")
-                        .WithMany("FriendshipFrom")
-                        .HasForeignKey("ToId")
+                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "Friend2")
+                        .WithMany()
+                        .HasForeignKey("Friend2Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("FriendFrom");
+                    b.Navigation("Friend1");
 
-                    b.Navigation("FriendTo");
+                    b.Navigation("Friend2");
                 });
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.Issue", b =>
@@ -490,9 +508,7 @@ namespace MyGarden.Migrations
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.ApplicationUser", b =>
                 {
-                    b.Navigation("FriendshipFrom");
-
-                    b.Navigation("FriendshipTo");
+                    b.Navigation("Friendship");
 
                     b.Navigation("Issues");
 
