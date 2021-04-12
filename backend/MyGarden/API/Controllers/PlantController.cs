@@ -26,6 +26,18 @@ namespace MyGarden.API.Controllers
             return await repository.List();
         }
 
+        [HttpGet("{name}")]
+        public async Task<ActionResult> GetPlantByName(string name)
+        {
+            var plant = await repository.GetPlantByName(name);
+            if (plant != null)
+            {
+                return Ok(plant);
+            }
+            else
+                return NoContent();
+        }
+
         [HttpPost]
         public async Task<ActionResult> AddPlant(string plantName)
         {
