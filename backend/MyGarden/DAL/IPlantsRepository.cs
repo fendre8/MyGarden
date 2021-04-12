@@ -15,7 +15,7 @@ namespace MyGarden.DAL
 
         Task<IEnumerable<Plant>> List();
 
-        Task<Plant> AddPlant(string plantName, string username = null);
+        Task<Plant> AddPlant(string plantName);
 
         Task<OFPlantResult> OfFindPlantByName(string plantName);
 
@@ -23,6 +23,5 @@ namespace MyGarden.DAL
 
         Plant GetPlantById(int id);
 
-        Task<Plant> GetPlantByName(string name);
     }
 }

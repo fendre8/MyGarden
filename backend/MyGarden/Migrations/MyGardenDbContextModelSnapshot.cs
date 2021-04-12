@@ -261,15 +261,22 @@ namespace MyGarden.Migrations
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.Friendship", b =>
                 {
-                    b.Property<int>("FromId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("Friend1Id")
                         .HasColumnType("int");
 
-                    b.Property<int>("ToId")
+                    b.Property<int>("Friend2Id")
                         .HasColumnType("int");
 
-                    b.HasKey("FromId", "ToId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("ToId");
+                    b.HasIndex("Friend1Id");
+
+                    b.HasIndex("Friend2Id");
 
                     b.ToTable("Friendships");
                 });
@@ -447,21 +454,20 @@ namespace MyGarden.Migrations
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.Friendship", b =>
                 {
-                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "FriendFrom")
-                        .WithMany("FriendshipTo")
-                        .HasForeignKey("FromId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "FriendTo")
-                        .WithMany("FriendshipFrom")
-                        .HasForeignKey("ToId")
+                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "Friend1")
+                        .WithMany("Friendship")
+                        .HasForeignKey("Friend1Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("FriendFrom");
+                    b.HasOne("MyGarden.DAL.EF.DbModels.ApplicationUser", "Friend2")
+                        .WithMany()
+                        .HasForeignKey("Friend2Id")
+                        .IsRequired();
 
-                    b.Navigation("FriendTo");
+                    b.Navigation("Friend1");
+
+                    b.Navigation("Friend2");
                 });
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.Issue", b =>
@@ -490,9 +496,7 @@ namespace MyGarden.Migrations
 
             modelBuilder.Entity("MyGarden.DAL.EF.DbModels.ApplicationUser", b =>
                 {
-                    b.Navigation("FriendshipFrom");
-
-                    b.Navigation("FriendshipTo");
+                    b.Navigation("Friendship");
 
                     b.Navigation("Issues");
 

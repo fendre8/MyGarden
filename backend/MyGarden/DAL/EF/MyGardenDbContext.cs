@@ -60,16 +60,15 @@ namespace MyGarden.DAL.EF
 
             modelBuilder.Entity<Friendship>(entity =>
             {
-                entity.HasKey(f => new { f.FromId, f.ToId });
+                entity.HasKey(f => f.Id);
 
-                entity.HasOne(f => f.FriendFrom)
-                    .WithMany(p => p.FriendshipTo)
-                    .HasForeignKey(f => f.FromId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(f => f.Friend1)
+                    .WithMany(p => p.Friendship)
+                    .HasForeignKey(f => f.Friend1Id);
 
-                entity.HasOne(f => f.FriendTo)
-                    .WithMany(f => f.FriendshipFrom)
-                    .HasForeignKey(f => f.ToId);
+                entity.HasOne(f => f.Friend2)
+                    .WithMany()
+                    .HasForeignKey(f => f.Friend2Id);
             });
         }
 

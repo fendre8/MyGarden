@@ -7,7 +7,7 @@ namespace MyGarden.Models
 {
     public class AddFriendModel
     {
-        public string FriendFrom { get; set; }
-        public string FriendTo { get; set; }
+        public string username1 { get; set; }
+        public string username2 { get; set; }
     }
 }
