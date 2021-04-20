@@ -34,6 +34,8 @@ namespace MyGarden
 
         public IConfiguration Configuration { get; }
 
+        readonly string MySitePolicy = "_mySitePolicy";
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -107,6 +109,18 @@ namespace MyGarden
                 mc.AddProfile(new MappingProfile())
             );
             services.AddSingleton(mappingConfig.CreateMapper());
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: MySitePolicy,
+                        builder =>
+                        {
+                            builder.WithOrigins("http://localhost:3000")
+                                .AllowAnyOrigin()
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                        });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -122,6 +136,8 @@ namespace MyGarden
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(MySitePolicy);
 
             app.UseAuthentication();
             app.UseAuthorization();

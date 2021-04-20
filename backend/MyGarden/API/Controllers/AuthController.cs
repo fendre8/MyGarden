@@ -67,7 +67,10 @@ namespace MyGarden.API.Controllers
                     expiration = token.ValidTo
                 });
             }
-            return Unauthorized();
+            return Unauthorized(new
+            {
+                message = "Unauthorized"
+            });
         }
 
         [HttpPost]
