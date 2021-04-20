@@ -1,7 +1,11 @@
 import React from 'react'
 
-const MainPage = () => (
-    <h1>Main Page</h1>
-)
+const MainPage = () => {
+
+    return (<>
+        <h2>Main Page</h2>
+    </>
+    );
+}
 
 export default MainPage;

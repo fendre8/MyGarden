@@ -6,7 +6,7 @@ import { baseUrl, headers } from '../SettingsLoader';
 
 export const onLogin = async (data: LoginRequest) : Promise<Session> => {
     return await axios
-        .post<Session>(baseUrl + "login", data, {
+        .post<Session>(baseUrl + "auth/login", data, {
             headers: headers
         })
         .then(response => {
