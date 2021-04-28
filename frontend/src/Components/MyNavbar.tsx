@@ -1,19 +1,34 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { fade, makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import InputBase from '@material-ui/core/InputBase';
-import Badge from '@material-ui/core/Badge';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
+import Plant from '../Models/Plant/Plant';
+import Button from '@material-ui/core/Button';
+import Drawer from '@material-ui/core/Drawer';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import Divider from '@material-ui/core/Divider';
+
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
+import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
-import NotificationsIcon from '@material-ui/icons/Notifications';
-import MoreIcon from '@material-ui/icons/MoreVert';
+
+import clsx from 'clsx';
+
+import { getPlants } from '../http/PlantDataLoader';
+import { PlantsContext } from './PlantsContext';
+import { ErrorModel } from "../Models/common/ErrorModel";
+
+const drawerWidth = 240;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -36,18 +51,16 @@ const useStyles = makeStyles((theme: Theme) =>
       '&:hover': {
         backgroundColor: fade(theme.palette.common.white, 0.25),
       },
-      marginRight: theme.spacing(2),
       marginLeft: 0,
-      width: '100%',
+      width: "100%",
       [theme.breakpoints.up('sm')]: {
         marginLeft: theme.spacing(3),
         width: 'auto',
       },
     },
     searchIcon: {
-      padding: theme.spacing(0, 2),
       height: '100%',
-      position: 'absolute',
+      position: 'relative',
       pointerEvents: 'none',
       display: 'flex',
       alignItems: 'center',
@@ -59,30 +72,41 @@ const useStyles = makeStyles((theme: Theme) =>
     inputInput: {
       padding: theme.spacing(1, 1, 1, 0),
       // vertical padding + font size from searchIcon
-      paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+      paddingLeft: `calc(1em + ${theme.spacing(1)}px)`,
       transition: theme.transitions.create('width'),
       width: '100%',
-      [theme.breakpoints.up('md')]: {
-        width: '20ch',
+      [theme.breakpoints.up('sm')]: {
+        width: '12ch',
+        '&:focus': {
+          width: '20ch',
+        },
       },
     },
     sectionDesktop: {
-      display: 'none',
+      display: 'felx',
       [theme.breakpoints.up('md')]: {
         display: 'flex',
       },
     },
-    sectionMobile: {
-      display: 'flex',
-      [theme.breakpoints.up('md')]: {
-        display: 'none',
-      },
+    list: {
+      width: drawerWidth,
+    },
+    fullList: {
+      width: 'auto',
+    },
+    drawer: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
+    drawerPaper: {
+      width: drawerWidth,
     },
   }),
 );
 
-export default function PrimarySearchAppBar() {
+const MyNavbar = (props: { sendSearchResult?: (plants: Plant[] | undefined, search: string) => void; }) => {
   const classes = useStyles();
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -93,18 +117,72 @@ export default function PrimarySearchAppBar() {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMobileMenuClose = () => {
-    setMobileMoreAnchorEl(null);
-  };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
-    handleMobileMenuClose();
   };
 
-  const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setMobileMoreAnchorEl(event.currentTarget);
+  const handleLogout = () => {
+    setAnchorEl(null);
+    sessionStorage.removeItem("token");
+    setIsLogin(false);
+  }
+
+  const [drawerState, setDrawerState] = React.useState(false);
+
+  const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent,) => {
+    if (
+      event.type === 'keydown' &&
+      ((event as React.KeyboardEvent).key === 'Tab' ||
+        (event as React.KeyboardEvent).key === 'Shift')
+    ) {
+      return;
+    }
+
+    setDrawerState(open);
+    console.log("Drawer: " + open);
   };
+
+  //Searching
+  const searchPlants = async (plantName: string) => {
+    const plants = await getPlants(plantName);
+    if (plants) {
+      const filtered = plants.filter(plant =>
+        plant.description !== null && plant.description.length > 10 && plant.thumbnail_url.startsWith("http")
+      )
+      console.log(plants);
+      console.log(filtered);
+      plantContent?._setPlants(filtered)
+    } else {
+      plantContent?._setPlants([]);
+    }
+    handleSearch();
+  }
+
+  const handleSearch = () => {
+    const plants = plantContent?._plants;
+    if (props.sendSearchResult)
+      props.sendSearchResult(plants, search);
+  }
+
+  const StartSearch = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === "Enter") {
+      searchPlants(search);
+      e.currentTarget.value = "";
+    }
+  }
+
+  const [search, setSearch] = useState("");
+
+  const [isLogin, setIsLogin] = useState(false);
+
+  const plantContent = useContext(PlantsContext);
+
+  //const UserConent = useContext(UserContext);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (token !== null) setIsLogin(true);
+  }, [])
 
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
@@ -118,49 +196,35 @@ export default function PrimarySearchAppBar() {
       onClose={handleMenuClose}
     >
       <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      <MenuItem onClick={handleLogout} >Logout</MenuItem>
     </Menu>
   );
 
-  const mobileMenuId = 'primary-search-account-menu-mobile';
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
+  const list = () => (
+    <div
+      className={`${classes.list} ${classes.fullList}`}
+      role="presentation"
+      onClick={toggleDrawer(false)}
+      onKeyDown={toggleDrawer(false)}
     >
-      <MenuItem>
-        <IconButton aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="secondary">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages</p>
-      </MenuItem>
-      <MenuItem>
-        <IconButton aria-label="show 11 new notifications" color="inherit">
-          <Badge badgeContent={11} color="secondary">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-        <p>Notifications</p>
-      </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
-    </Menu>
+      <List>
+        {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
+          <ListItem button key={text}>
+            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
+            <ListItemText primary={text} />
+          </ListItem>
+        ))}
+      </List>
+      <Divider />
+      <List>
+        {['All mail', 'Trash', 'Spam'].map((text, index) => (
+          <ListItem button key={text}>
+            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
+            <ListItemText primary={text} />
+          </ListItem>
+        ))}
+      </List>
+    </div>
   );
 
   return (
@@ -172,16 +236,39 @@ export default function PrimarySearchAppBar() {
             className={classes.menuButton}
             color="inherit"
             aria-label="open drawer"
+            onClick={toggleDrawer(true)}
           >
             <MenuIcon />
           </IconButton>
+          <React.Fragment>
+            <Drawer
+              anchor="left"
+              open={drawerState}
+              onClose={toggleDrawer(false)}
+              className={classes.drawer}
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+            >
+              {list()}
+            </Drawer>
+          </React.Fragment>
           <Typography className={classes.title} variant="h6" noWrap>
             MyGarden App
           </Typography>
           <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon />
-            </div>
+            <IconButton
+              edge="end"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                searchPlants(search)
+              }
+              }>
+              <div className={classes.searchIcon}>
+                <SearchIcon />
+              </div>
+            </IconButton>
             <InputBase
               placeholder="Search…"
               classes={{
@@ -189,36 +276,31 @@ export default function PrimarySearchAppBar() {
                 input: classes.inputInput,
               }}
               inputProps={{ 'aria-label': 'search' }}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyUp={(event) => StartSearch(event)}
             />
           </div>
           <div className={classes.grow} />
-          <div className={classes.sectionDesktop}>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-          </div>
-          <div className={classes.sectionMobile}>
-            <IconButton
-              aria-label="show more"
-              aria-controls={mobileMenuId}
-              aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
-              color="inherit"
-            >
-              <MoreIcon />
-            </IconButton>
-          </div>
+          {isLogin !== false ?
+            <div className={classes.sectionDesktop}>
+              <IconButton
+                edge="end"
+                aria-label="account of current user"
+                aria-controls={menuId}
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
+              >
+                <AccountCircle />
+              </IconButton>
+            </div>
+            : <Button color="inherit" href="/login">Login</Button>
+          }
         </Toolbar>
       </AppBar>
-      {renderMobileMenu}
       {renderMenu}
     </div>
   );
 }
+
+export default MyNavbar;
