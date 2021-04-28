@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MyGarden.API.DTO;
 using MyGarden.DAL;
 using MyGarden.Models;
 using System;
@@ -29,13 +30,18 @@ namespace MyGarden.API.Controllers
         [HttpGet("{name}")]
         public async Task<ActionResult> GetPlantByName(string name)
         {
-            var plant = await repository.GetPlantByName(name);
-            if (plant != null)
+            var plants = await repository.GetPlantsByName(name);
+            if (plants != null)
             {
-                return Ok(plant);
+                return Ok(plants);
             }
             else
-                return NoContent();
+                return NotFound(new ErrorModel
+                {
+                    Code = "Not found",
+                    Type = "No match for " + name,
+                    Description = "No match for " + name
+                });
         }
 
         [HttpPost]
