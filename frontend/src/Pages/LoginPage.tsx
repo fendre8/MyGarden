@@ -14,9 +14,13 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import { Snackbar } from "@material-ui/core";
+import { Alert } from '@material-ui/lab';
+
 
 import { onLogin } from "../http/Auth/auth.api";
-import { Redirect } from "react-router-dom";
+import { UserStatus } from "../Models/User/Session";
+import { Redirect } from "react-router";
 
 
 function Copyright() {
@@ -67,6 +71,16 @@ export default function LoginPage() {
 
     const [error, setError] = useState('');
 
+    const [isLogin, setIsLogin] = useState(false);
+
+    const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setError("");
+    }
+
+
     const login = async (event: React.FormEvent) => {
         event.preventDefault();
         const response = await onLogin({
@@ -74,15 +88,19 @@ export default function LoginPage() {
             password
         })
         if (response && response.error) {
-            setError(response.error.code);
+            setError(`${response.error.code} ${response.error.description}`);
         }
         else {
-            <Redirect to='/' />
+            console.log("Redirect");
+            if (response.succes) setIsLogin(true);
+            console.log(response);
+            sessionStorage.setItem("token", response.token);
         }
     }
 
     return (
         <>
+            {isLogin && <Redirect to="/" />}
             <IconButton aria-label="go-back" color="primary" size="medium" className={classes.back} href="/">
                 <ArrowBackIcon />
             </IconButton>
@@ -130,6 +148,11 @@ export default function LoginPage() {
                             control={<Checkbox value="remember" color="primary" />}
                             label="Remember me"
                         />
+                        <Snackbar open={error !== ""} autoHideDuration={5000} onClose={handleClose}>
+                            <Alert onClose={handleClose} severity="error">
+                                {error}
+                            </Alert>
+                        </Snackbar>
                         <Button
                             type="submit"
                             fullWidth
@@ -138,7 +161,7 @@ export default function LoginPage() {
                             className={classes.submit}
                         >
                             Sign In
-                    </Button>
+                        </Button>
                         <Grid container>
                             <Grid item xs>
                                 <Link href="#" variant="body2">
