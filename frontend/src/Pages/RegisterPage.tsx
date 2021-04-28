@@ -14,43 +14,8 @@ import Container from '@material-ui/core/Container';
 
 import { onRegister } from '../http/Auth/auth.api';
 import { Redirect } from 'react-router-dom';
-
-// const RegisterPage = () => {
-//     return (
-//         <AuthForm onSubmit={register}>
-//             <label htmlFor="username">Username</label>
-//             <input value={username} name="username" placeholder="Username" onChange={(event) => setRegisterData({
-//                 username: event.target.value,
-//                 email,
-//                 password,
-//                 repeatPassword
-//             })} />
-//             <label htmlFor="emial">Email</label>
-//             <input value={email} name="emial" placeholder="Email" onChange={(event) => setRegisterData({
-//                 username,
-//                 email: event.target.value,
-//                 password,
-//                 repeatPassword
-//             })} />
-//             <label htmlFor="password">Password</label>
-//             <input value={password} name="password" type="password" placeholder="Password" onChange={(event) => setRegisterData({
-//                 username,
-//                 email,
-//                 password: event.target.value,
-//                 repeatPassword
-//             })} />
-//             <label htmlFor="username">Repeat password</label>
-//             <input value={repeatPassword} name="repeatPassword" type="password" placeholder="Password again" onChange={(event) => setRegisterData({
-//                 username,
-//                 email,
-//                 password,
-//                 repeatPassword: event.target.value
-//             })} />
-//             <button type="submit">Register</button>
-//             {error.length > 0 && <p>{error}</p>}
-//         </AuthForm>
-//     )
-// }
+import { Snackbar } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
 
 
 function Copyright() {
@@ -98,7 +63,16 @@ export default function RegisterPage() {
         repeatPassword: ''
     })
 
+    const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setError("");
+    }
+
     const [error, setError] = useState('');
+
+    const [registered, setRegistered] = useState(false);
 
     const register = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -106,18 +80,20 @@ export default function RegisterPage() {
             //perform API
             const response = await onRegister({ first_name, last_name, username, email, password })
 
-            if (response && response.error) {
-                setError(response.error)
+            if (response !== undefined) {
+                setError(response.description)
             }
-            else if (response !== undefined) {
-                <Redirect to='/login'/>
+            else if (response === undefined) {
+                setRegistered(true);
             }
         } else {
             setError('Password and repeat password must match!');
         }
+        console.log(error);
     }
 
-    return (
+    return (<>
+        {registered && <Redirect to="/login" />}
         <Container component="main" maxWidth="xs">
             <CssBaseline />
             <div className={classes.paper}>
@@ -247,6 +223,11 @@ export default function RegisterPage() {
                             />
                         </Grid>
                     </Grid>
+                    <Snackbar open={error !== ""} autoHideDuration={5000} onClose={handleClose}>
+                        <Alert onClose={handleClose} severity="error">
+                            {error}
+                        </Alert>
+                    </Snackbar>
                     <Button
                         type="submit"
                         fullWidth
@@ -269,5 +250,6 @@ export default function RegisterPage() {
                 <Copyright />
             </Box>
         </Container>
+    </>
     );
 }
