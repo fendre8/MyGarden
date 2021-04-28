@@ -1,4 +1,5 @@
 class Plant {
+    id: number = 0;
     name: string = "";
     scientific_name: string = "";
     description: string = "";
@@ -10,8 +11,8 @@ class Plant {
     row_spacing: number = 0;
     sun_requirements: string = "";
     sowing_method: string = "";
-    image_url: string = "";
-    plant_time: Date = new Date();
+    thumbnail_url: string = "";
+    plant_time?: Date = new Date();
 }
 
 export default Plant;
