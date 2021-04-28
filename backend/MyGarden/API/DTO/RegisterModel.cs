@@ -8,7 +8,14 @@ namespace MyGarden.DAL.EF.DbModels
 {
     public class RegisterModel
     {
-        [Required(ErrorMessage = "User Name is required")]
+
+        [Required(ErrorMessage = "First name is required")]
+        public string First_Name { get; set; }
+
+        [Required(ErrorMessage = "Last name is required")]
+        public string Last_Name { get; set; }
+
+        [Required(ErrorMessage = "User name is required")]
         public string Username { get; set; }
 
         [EmailAddress]
