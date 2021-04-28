@@ -23,6 +23,6 @@ namespace MyGarden.DAL
 
         Plant GetPlantById(int id);
 
-        Task<Plant> GetPlantByName(string name);
+        Task<Plant[]> GetPlantsByName(string name);
     }
 }
