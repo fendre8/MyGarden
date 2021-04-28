@@ -54,22 +54,27 @@ namespace MyGarden.API.Controllers
                 var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
                 var token = new JwtSecurityToken(
-                    issuer: _configuration["JWT:ValidIssuer"],
-                    audience: _configuration["JWT:ValidAudience"],
-                    expires: DateTime.Now.AddHours(3),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+                        issuer: _configuration["JWT:ValidIssuer"],
+                        audience: _configuration["JWT:ValidAudience"],
+                        expires: DateTime.Now.AddHours(5),
+                        claims: authClaims,
+                        signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
 
-                return Ok(new
+                return Ok(new Session
                 {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
+                    Status = UserStatus.LoggedIn,
+                    Success = true,
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                    Username = model.Username,
+                    UserType = UserType.User,
+                    Error = null
                 });
             }
-            return Unauthorized(new
+            return Unauthorized(new Response
             {
-                message = "Unauthorized"
+                Status = "Error",
+                Message = "Unauthorized"
             });
         }
 
@@ -81,11 +86,13 @@ namespace MyGarden.API.Controllers
             if (userExists != null)
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
 
-            ApplicationUser user = new ApplicationUser()
+            var user = new ApplicationUser()
             {
+                UserName = model.Username,
+                First_name = model.First_Name,
+                Last_name = model.Last_Name,
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Username
             };
             var result = await userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
