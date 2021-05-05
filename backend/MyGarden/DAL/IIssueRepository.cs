@@ -9,9 +9,9 @@ namespace MyGarden.DAL
 {
     public interface IIssueRepository
     {
-        IEnumerable<Issue> List();
+        Task<IEnumerable<Issue>> List();
 
-        NewIssueResponse CreateIssueForPlant(NewIssueModel issue);
+        Task<NewIssueResponse> CreateIssueForPlant(NewIssueModel issue);
 
         void AddCommentForIssue(Issue issue, Answer answer);
 
