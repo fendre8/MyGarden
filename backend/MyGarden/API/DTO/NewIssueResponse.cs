@@ -11,7 +11,7 @@ namespace MyGarden.API.DTO
         public string Title { get; set; }
         public string Description { get; set; }
         public string Img_url { get; set; }
-        public bool Is_open { get; set; }
+        public bool Is_open { get; set; } = true;
 
         public string Author { get; set; }
         public string Plant { get; set; }
