@@ -19,7 +19,7 @@ namespace MyGarden.Models
         public double Row_spacing { get; set; }
         public string Sun_requirements { get; set; }
         public string Sowing_method { get; set; }
-        public string thumbnail_url { get; set; }
+        public string Img_url { get; set; }
 
         public DateTime Plant_time { get; set; }
     }
