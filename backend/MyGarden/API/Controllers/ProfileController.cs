@@ -91,22 +91,53 @@ namespace MyGarden.API.Controllers
             var friendship = await profile_repository.AddFriend(friendModel.FriendFrom, friendModel.FriendTo);
             if (friendship == null)
             {
-                return BadRequest();
+                return BadRequest(new Response
+                {
+                    Status = "400",
+                    Message = "User not found"
+                });
             }
             else
                 return Created(nameof(AddFriend),friendship);
         }
 
-        [HttpPost("name/{username}/{plantName}")]
-        public async Task<ActionResult> AddPlantToGarden([FromRoute] string username, string plantName)
+        [HttpDelete("friend")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> DeleteFriend([FromBody] AddFriendModel friendModel)
         {
-            var plant = await plant_repository.AddPlant(plantName, username);
+            var task = await profile_repository.DeleteFriendShip(friendModel.FriendFrom, friendModel.FriendTo);
+            if (task == null)
+                return NotFound();
+            else return NoContent();
+        }
+
+        [HttpPost("name/{username}/plant")]
+        public async Task<ActionResult> AddPlantToGarden([FromRoute] string username, [FromBody] PlantRequest _plant)
+        {
+            var plant = await plant_repository.AddPlant(_plant.plantName, username);
             if (plant != null)
             {
                 return Created(nameof(AddPlantToGarden), plant);
             }
             else
                 return BadRequest();
+        }
+
+        [HttpGet("name/{username}/plants")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetUserPlants([FromRoute] string username)
+        {
+            var plants = await plant_repository.getUserPlants(username);
+            if (plants != null)
+            {
+                return Ok(plants);
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
     }
