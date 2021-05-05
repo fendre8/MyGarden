@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MyGarden.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,5 +36,6 @@ namespace MyGarden.API.DTO
         public bool Success { get; set; } = false;
         public string Token { get; set; } = "";
         public ErrorModel Error { get; set; } = new ErrorModel();
+        public Profile User { get; set; } = new Profile();
     }
 }
