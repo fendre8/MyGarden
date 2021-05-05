@@ -18,15 +18,15 @@ import Divider from '@material-ui/core/Divider';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
+import SpaIcon from '@material-ui/icons/Spa';
+import ReportProblemIcon from '@material-ui/icons/ReportProblem';
+import ContactsIcon from '@material-ui/icons/Contacts';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
-
-import clsx from 'clsx';
 
 import { getPlants } from '../http/PlantDataLoader';
 import { PlantsContext } from './PlantsContext';
-import { ErrorModel } from "../Models/common/ErrorModel";
+import { useHistory } from 'react-router';
+import { useAuth } from '../http/Auth/auth-context';
 
 const drawerWidth = 240;
 
@@ -43,6 +43,7 @@ const useStyles = makeStyles((theme: Theme) =>
       [theme.breakpoints.up('sm')]: {
         display: 'block',
       },
+      cursor: 'pointer',
     },
     search: {
       position: 'relative',
@@ -106,12 +107,16 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const MyNavbar = (props: { sendSearchResult?: (plants: Plant[] | undefined, search: string) => void; }) => {
   const classes = useStyles();
+  const plantContent = useContext(PlantsContext);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const auth = useAuth();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [drawerState, setDrawerState] = React.useState(false);
 
   const isMenuOpen = Boolean(anchorEl);
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -123,165 +128,167 @@ const MyNavbar = (props: { sendSearchResult?: (plants: Plant[] | undefined, sear
 
   const handleLogout = () => {
     setAnchorEl(null);
-    sessionStorage.removeItem("token");
-    setIsLogin(false);
+    auth.logout();
+    history.replace("/");
   }
 
-  const [drawerState, setDrawerState] = React.useState(false);
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent,) => {
     if (
-      event.type === 'keydown' &&
-      ((event as React.KeyboardEvent).key === 'Tab' ||
-        (event as React.KeyboardEvent).key === 'Shift')
-    ) {
+      !auth.loggedIn ||
+      (event.type === 'keydown' &&
+        ((event as React.KeyboardEvent).key === 'Tab' ||
+          (event as React.KeyboardEvent).key === 'Shift'))) {
       return;
     }
-
     setDrawerState(open);
-    console.log("Drawer: " + open);
   };
 
   //Searching
   const searchPlants = async (plantName: string) => {
-    const plants = await getPlants(plantName);
-    if (plants) {
-      const filtered = plants.filter(plant =>
-        plant.description !== null && plant.description.length > 10 && plant.thumbnail_url.startsWith("http")
-      )
-      console.log(plants);
-      console.log(filtered);
-      plantContent?._setPlants(filtered)
-    } else {
-      plantContent?._setPlants([]);
-    }
+    setLoading(true);
+    if (search === '') return;
+    await getPlants(plantName)
+      .then((plants) => {
+        plantContent?._setPlants(plants!)
+  })
+    .then(() => console.log(plantContent?._plants));
     handleSearch();
+    setLoading(false);
   }
 
-  const handleSearch = () => {
-    const plants = plantContent?._plants;
-    if (props.sendSearchResult)
-      props.sendSearchResult(plants, search);
+const handleSearch = () => {
+  const plants = plantContent?._plants;
+  console.log(plants);
+  if (props.sendSearchResult)
+    props.sendSearchResult(plants, search);
+}
+
+const StartSearch = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  if (e.key === "Enter") {
+    searchPlants(search);
+    e.currentTarget.value = "";
   }
+}
 
-  const StartSearch = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (e.key === "Enter") {
-      searchPlants(search);
-      e.currentTarget.value = "";
-    }
-  }
+useEffect(() => {
+  const session = auth.session;
+  console.log(auth);
+  searchPlants(search);
+}, [])
 
-  const [search, setSearch] = useState("");
+const menuId = 'primary-search-account-menu';
+const renderMenu = (
+  <Menu
+    anchorEl={anchorEl}
+    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+    id={menuId}
+    keepMounted
+    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+    open={isMenuOpen}
+    onClose={handleMenuClose}
+  >
+    <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+    <MenuItem onClick={handleLogout} >Logout</MenuItem>
+  </Menu>
+);
 
-  const [isLogin, setIsLogin] = useState(false);
+const history = useHistory();
 
-  const plantContent = useContext(PlantsContext);
+const handleClickMyPlants = (_path: string) => {
+  if (!auth.loggedIn) return;
+  let path = "/" + _path;
+  history.push(path);
+}
 
-  //const UserConent = useContext(UserContext);
+const list = () => (
+  <div
+    className={`${classes.list} ${classes.fullList}`}
+    role="presentation"
+    onClick={toggleDrawer(false)}
+    onKeyDown={toggleDrawer(false)}
+  >
+    <List>
+      <ListItem button onClick={() => handleClickMyPlants("plants")}>
+        <ListItemIcon>
+          <SpaIcon />
+        </ListItemIcon>
+        <ListItemText primary={"My plants"} />
+      </ListItem>
+      <ListItem button onClick={() => handleClickMyPlants("friends")}>
+        <ListItemIcon><ContactsIcon /></ListItemIcon>
+        <ListItemText primary={"Friends"} />
+      </ListItem>
+      <ListItem button onClick={() => handleClickMyPlants("issues")}>
+        <ListItemIcon><ReportProblemIcon /></ListItemIcon>
+        <ListItemText primary={"Issues"} />
+      </ListItem>
+    </List>
+    <Divider />
+  </div>
+);
 
-  useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (token !== null) setIsLogin(true);
-  }, [])
-
-  const menuId = 'primary-search-account-menu';
-  const renderMenu = (
-    <Menu
-      anchorEl={anchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      id={menuId}
-      keepMounted
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      open={isMenuOpen}
-      onClose={handleMenuClose}
-    >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleLogout} >Logout</MenuItem>
-    </Menu>
-  );
-
-  const list = () => (
-    <div
-      className={`${classes.list} ${classes.fullList}`}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
-    >
-      <List>
-        {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-      <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
-    </div>
-  );
-
-  return (
-    <div className={classes.grow}>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton
-            edge="start"
-            className={classes.menuButton}
-            color="inherit"
-            aria-label="open drawer"
-            onClick={toggleDrawer(true)}
+return (
+  <div className={classes.grow}>
+    <AppBar position="static">
+      <Toolbar>
+        <IconButton
+          edge="start"
+          className={classes.menuButton}
+          color="inherit"
+          aria-label="open drawer"
+          onClick={toggleDrawer(true)}
+        >
+          <MenuIcon />
+        </IconButton>
+        <React.Fragment>
+          <Drawer
+            anchor="left"
+            open={drawerState}
+            onClose={toggleDrawer(false)}
+            className={classes.drawer}
+            classes={{
+              paper: classes.drawerPaper,
+            }}
           >
-            <MenuIcon />
-          </IconButton>
-          <React.Fragment>
-            <Drawer
-              anchor="left"
-              open={drawerState}
-              onClose={toggleDrawer(false)}
-              className={classes.drawer}
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-            >
-              {list()}
-            </Drawer>
-          </React.Fragment>
-          <Typography className={classes.title} variant="h6" noWrap>
-            MyGarden App
+            {list()}
+          </Drawer>
+        </React.Fragment>
+        <Typography className={classes.title} variant="h6" noWrap onClick={() => {
+          history.push("/");
+        }} >
+          MyGarden App
           </Typography>
-          <div className={classes.search}>
-            <IconButton
-              edge="end"
-              color="inherit"
-              size="small"
-              onClick={() => {
-                searchPlants(search)
-              }
-              }>
-              <div className={classes.searchIcon}>
-                <SearchIcon />
-              </div>
-            </IconButton>
-            <InputBase
-              placeholder="Search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyUp={(event) => StartSearch(event)}
-            />
-          </div>
-          <div className={classes.grow} />
-          {isLogin !== false ?
+        <div className={classes.search}>
+          <IconButton
+            edge="end"
+            color="inherit"
+            size="small"
+            onClick={() => {
+              searchPlants(search)
+            }
+            }>
+            <div className={classes.searchIcon}>
+              <SearchIcon />
+            </div>
+          </IconButton>
+          <InputBase
+            placeholder="Search…"
+            classes={{
+              root: classes.inputRoot,
+              input: classes.inputInput,
+            }}
+            inputProps={{ 'aria-label': 'search' }}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyUp={(event) => StartSearch(event)}
+          />
+        </div>
+        <div className={classes.grow} />
+        {auth.loggedIn !== false ?
+          <>
+            <Typography variant="h6" noWrap>
+              {auth.user && auth.user.username}
+            </Typography>
             <div className={classes.sectionDesktop}>
               <IconButton
                 edge="end"
@@ -294,13 +301,14 @@ const MyNavbar = (props: { sendSearchResult?: (plants: Plant[] | undefined, sear
                 <AccountCircle />
               </IconButton>
             </div>
-            : <Button color="inherit" href="/login">Login</Button>
-          }
-        </Toolbar>
-      </AppBar>
-      {renderMenu}
-    </div>
-  );
+          </>
+          : <Button color="inherit" href="/login">Login</Button>
+        }
+      </Toolbar>
+    </AppBar>
+    {renderMenu}
+  </div>
+);
 }
 
 export default MyNavbar;
