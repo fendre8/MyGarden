@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
@@ -8,8 +8,8 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import Plant from '../Models/Plant/Plant';
-import { ButtonBase } from '@material-ui/core';
-import { Redirect } from 'react-router';
+import { useHistory } from 'react-router';
+import { useAuth } from '../http/Auth/auth-context';
 
 const useStyles = makeStyles({
   root: {
@@ -30,47 +30,37 @@ const useStyles = makeStyles({
 
 export default function PlantCard(props: { plant: Plant }) {
   const classes = useStyles();
-  const [details, setDetails] = useState(false);
+  const history = useHistory();
+  const loggedIn = useAuth();
 
   const handleClickOnPlant = () => {
-    setDetails(true);
+    history.push(`/plant/${props.plant.id}`);
   }
 
   return (<>
-    {details && <Redirect to={`/plant/${props.plant.name.replace(" ", "-")}`} /> }
     <Card className={classes.root}>
-      <ButtonBase
-        className={classes.cardAction}
-        onClick={() => {
-          handleClickOnPlant()
-        }}
-      >
-        <CardActionArea>
-          <CardMedia
-            className={classes.media}
-            image={props.plant.thumbnail_url}
-            title={props.plant.name}
-          />
-          <CardContent>
-            <Typography variant="h5" component="h2">
-              {props.plant.name.charAt(0).toUpperCase() + props.plant.name.slice(1)}
-            </Typography>
-            <Typography gutterBottom variant="subtitle2" component="h3" className={classes.italic}>
-              {props.plant.scientific_name}
-            </Typography>
-            <Typography variant="body2" color="textSecondary" component="p">
-              {props.plant.description.substr(0, 400) + "..."}
-            </Typography>
-          </CardContent>
-        </CardActionArea>
-      </ButtonBase>
+      <CardActionArea>
+        <CardMedia
+          className={classes.media}
+          image={props.plant.img_url}
+          title={props.plant.name}
+        />
+        <CardContent>
+          <Typography variant="h5" component="h2">
+            {props.plant.name.charAt(0).toUpperCase() + props.plant.name.slice(1)}
+          </Typography>
+          <Typography gutterBottom variant="subtitle2" component="h3" className={classes.italic}>
+            {props.plant.scientific_name}
+          </Typography>
+          <Typography variant="body2" color="textSecondary" component="p">
+            {props.plant.description.substr(0, 400) + "..."}
+          </Typography>
+        </CardContent>
+      </CardActionArea>
       <CardActions>
-        <Button size="small" color="primary">
+        <Button size="small" color="primary" onClick={() => handleClickOnPlant()}>
           Show
         </Button>
-        {/* <Button size="small" color="primary">
-          Learn More
-        </Button> */}
       </CardActions>
     </Card>
   </>
