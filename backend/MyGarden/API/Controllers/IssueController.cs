@@ -15,44 +15,48 @@ namespace MyGarden.API.Controllers
     [ApiController]
     public class IssueController : ControllerBase
     {
-        private readonly IIssueRepository repository;
+        private readonly IIssueRepository issues_repository;
+        private readonly IPlantsRepository plants_repository;
+        private readonly IProfilesRepository profiles_repository;
 
-        public IssueController(IIssueRepository repository)
+        public IssueController(IIssueRepository i_repo, IPlantsRepository pl_repo, IProfilesRepository pr_repo)
         {
-            this.repository = repository;
+            this.issues_repository = i_repo;
+            this.plants_repository = pl_repo;
+            this.profiles_repository = pr_repo;
         }
 
         [HttpGet]
         public async Task<IEnumerable<Issue>> List()
         {
-            return repository.List();
+            return await issues_repository.List();
         }
 
-        //[HttpPost]
-        //[ProducesResponseType(StatusCodes.Status201Created)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //public ActionResult<NewIssueResponse> CreateIssue([FromBody] NewIssueModel issue)
-        //{
-        //    var user = repository.FindByUserName(issue.Username);
-        //    if (user == null)
-        //        return BadRequest();
-        //    var plant = repository.GetPlantById(issue.PlantId);
-        //    if (plant == null)
-        //        return BadRequest();
-        //    var result = repository.CreateIssueForPlant(issue);
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<NewIssueResponse>> CreateIssue([FromBody] NewIssueModel issue)
+        {
+            var user = await profiles_repository.FindByUserName(issue.Username);
+            if (user == null)
+                return BadRequest();
+            var plant = plants_repository.GetPlantById(issue.PlantId);
+            if (plant == null)
+                return BadRequest();
+            var result = await issues_repository.CreateIssueForPlant(issue);
 
-        //    return new NewIssueResponse
-        //    {
-        //        Id = result.Id,
-        //        Author = result.Author.Username,
-        //        Plant = result.Plant.Name,
-        //        Title = result.Title,
-        //        Description = result.Description,
-        //        Is_open = result.Is_open,
-        //        Img_url = result.Img_url,
-        //        Answers = new List<string>()
-        //    };
-        //}
+            return Created(nameof(CreateIssue),new NewIssueResponse
+            {
+                Id = result.Id,
+                Author = result.Author,
+                Plant = result.Plant,
+                Title = result.Title,
+                Description = result.Description,
+                Is_open = result.Is_open,
+                Img_url = result.Img_url,
+                Answers = new List<string>()
+            });
+        }
 
     }
 }
