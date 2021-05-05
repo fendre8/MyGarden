@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MyGarden.API.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace MyGarden.Models
         public bool Is_open { get; set; }
 
         public Profile Author { get; set; }
-        public Plant Plant { get; set; }
+        public IssuePlant Plant { get; set; }
         public ICollection<Answer> Answers { get; set; }
 
     }
