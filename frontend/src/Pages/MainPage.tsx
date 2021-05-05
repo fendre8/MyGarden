@@ -1,11 +1,9 @@
-import React, { /*useContext,*/ useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Container, createStyles, Grid, makeStyles, Theme } from '@material-ui/core';
 import MyNavbar from '../Components/MyNavbar';
 import PlantCard from '../Components/PlantCard';
-import { /*PlantsContext,*/ PlantsProvider } from '../Components/PlantsContext';
+import { PlantsProvider } from '../Components/PlantsContext';
 import Plant from '../Models/Plant/Plant';
-import { Route, Switch } from 'react-router-dom';
-import { PlantDetails } from '../Components/PlantDetails';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -21,8 +19,7 @@ const useStyles = makeStyles((theme: Theme) =>
 function MainPage() {
     const classes = useStyles();
 
-
-    //const plantsContent = useContext(PlantsContext);
+    // const { user, logout } = useAuth();
 
     const [plants, setPlants] = useState<Plant[]>([]);
     const [search, setSearch] = useState("");
@@ -56,13 +53,6 @@ function MainPage() {
                     </Grid>
                 </Container>
             </PlantsProvider>
-            {plants.map(plant => (
-                <Switch key={plant.id} >
-                    <Route path={`/plant/${plant.name.replace(" ","-")}`}>
-                        <PlantDetails />
-                    </Route>
-                </Switch>
-            ))}
         </div>
     );
 }
