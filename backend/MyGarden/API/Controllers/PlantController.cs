@@ -27,8 +27,25 @@ namespace MyGarden.API.Controllers
             return await repository.List();
         }
 
-        [HttpGet("{name}")]
-        public async Task<ActionResult> GetPlantByName(string name)
+        [HttpGet("id/{id}")]
+        public async Task<ActionResult> GetPlantById(int id)
+        {
+            var plant = await repository.GetPlantById(id);
+            if (plant != null)
+            {
+                return Ok(plant);
+            }
+            else
+                return NotFound(new ErrorModel
+                {
+                    Code = "Not found",
+                    Type = "No match for " + id,
+                    Description = "No match for " + id
+                });
+        }
+
+        [HttpGet("name/{name}")]
+        public async Task<ActionResult> GetPlantsByName(string name)
         {
             var plants = await repository.GetPlantsByName(name);
             if (plants != null)
