@@ -1,4 +1,5 @@
 import { ErrorModel } from "../common/ErrorModel";
+import User from "./User";
 
 
 export enum UserStatus {
@@ -15,7 +16,7 @@ export enum UserType {
 export class Session {
     status: UserStatus = UserStatus.New;
     userType: UserType = UserType.User;
-    username: string = "";
+    user: User = new User();
     succes: boolean = false;
     token: string = "";
     error?: ErrorModel;
