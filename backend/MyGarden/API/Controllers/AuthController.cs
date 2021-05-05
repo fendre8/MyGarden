@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MyGarden.API.DTO;
 using MyGarden.DAL.EF.DbModels;
+using MyGarden.Models;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -61,6 +62,19 @@ namespace MyGarden.API.Controllers
                         signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
 
+                var _user = new Profile
+                {
+                    Id = user.Id,
+                    Username = user.UserName,
+                    Email = user.Email,
+                    First_name = user.First_name,
+                    Last_name = user.Last_name,
+                    ImagePath = user.ImagePath,
+                    Issues = null,
+                    Friends = null,
+                    Plants = null
+                };
+
                 return Ok(new Session
                 {
                     Status = UserStatus.LoggedIn,
@@ -68,6 +82,7 @@ namespace MyGarden.API.Controllers
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
                     Username = model.Username,
                     UserType = UserType.User,
+                    User = _user,
                     Error = null
                 });
             }
