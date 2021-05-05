@@ -21,8 +21,10 @@ namespace MyGarden.DAL
 
         Task<GsPlantResult> GsFindPlantByName(string plantName);
 
-        Plant GetPlantById(int id);
-
         Task<Plant[]> GetPlantsByName(string name);
+
+        Task<IEnumerable<Plant>> getUserPlants(string username);
+
+        Task<Plant> GetPlantById(int id);
     }
 }
