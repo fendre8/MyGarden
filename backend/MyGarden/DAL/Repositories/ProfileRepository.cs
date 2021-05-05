@@ -27,6 +27,7 @@ namespace MyGarden.DAL
                 .Include(u => u.FriendshipTo).ThenInclude(f => f.FriendTo)
                 .Include(u => u.FriendshipFrom).ThenInclude(f => f.FriendFrom)
                 .Include(u => u.Plants)
+                .Include(u => u.Issues)
                 .AsSplitQuery()
                 .Select(ToModel)
                 .ToList();
@@ -126,6 +127,28 @@ namespace MyGarden.DAL
             }
         }
 
+        public async Task<FriendshipDTO> DeleteFriendShip(string username1, string username2)
+        {
+            using (var tran = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead))
+            {
+                var user1 = await db.ApplicationUsers.FirstOrDefaultAsync(u => u.UserName == username1);
+                var user2 = await db.ApplicationUsers.FirstOrDefaultAsync(u => u.UserName == username2);
+
+                var dbRecord = await db.Friendships.
+                    FirstOrDefaultAsync(f => (
+                    f.FromId == user1.Id && f.ToId == user2.Id));
+
+                if (dbRecord != null)
+                {
+                    db.Friendships.Remove(dbRecord);
+                    await db.SaveChangesAsync();
+                    await tran.CommitAsync();
+                }
+
+                return dbRecord == null ? null : mapper.Map<FriendshipDTO>(dbRecord);
+            }
+        }
+
         public Response InviteFriend(string username)
         {
             throw new NotImplementedException();
@@ -135,7 +158,6 @@ namespace MyGarden.DAL
         {
             throw new NotImplementedException();
         }
-
 
         private static Profile ToModel(EF.DbModels.ApplicationUser value)
         {
