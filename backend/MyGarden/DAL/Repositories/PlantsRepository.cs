@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyGarden.API.DTO;
 using MyGarden.API.DTO.Growstuff;
 using MyGarden.API.DTO.Openfarm;
@@ -55,13 +56,7 @@ namespace MyGarden.DAL
 
         public async Task<IEnumerable<Plant>> List()
         {
-            List<Plant> plants = null;
-            HttpResponseMessage response = await gsClient.GetAsync("crops.json");
-            if (response.IsSuccessStatusCode)
-            {
-                plants = await response.Content.ReadAsAsync<List<Plant>>();
-            }
-            return plants;
+            return await GetPlantsByName("");
         }
 
         public async Task<OFPlantResult> OfFindPlantByName(string plantName)
@@ -100,6 +95,11 @@ namespace MyGarden.DAL
             var ofPlants = await OfFindPlantByName(plantName);
 
             var gsPlant = await GsFindPlantByName(plantName);
+
+            if (ofPlants == null || gsPlant == null)
+            {
+                return null;
+            }
 
             var ofPlant = ofPlants.data.FirstOrDefault(p => p.attributes.binomial_name == gsPlant.scientific_names[0].name);
 
@@ -146,17 +146,24 @@ namespace MyGarden.DAL
                 Sowing_method = plant.Sowing_method,
                 Median_lifespan = plant.Median_lifespan,
                 Sun_requirements = plant.Sun_requirements,
-                thumbnail_url = plant.Img_url,
+                Img_url = plant.Img_url,
                 Plant_time = plant.Plant_time
             };
         }
 
-        public Plant GetPlantById(int id)
+        public async Task<Plant> GetPlantById(int id)
         {
-            var plant = db.Plants.FirstOrDefault(p => p.Id == id);
+            var plant = await db.Plants.FirstOrDefaultAsync(p => p.Id == id);
             if (plant == null)
                 return null;
             else return mapper.Map<Plant>(plant);
+        }
+
+        public async Task<IEnumerable<Plant>> getUserPlants(string username)
+        {
+            var user = await db.ApplicationUsers.Include(u => u.Plants).FirstOrDefaultAsync(u => u.UserName == username);
+            if (user == null) return null;
+            return mapper.Map<Plant[]>(user.Plants);
         }
 
         public async Task<Plant[]> GetPlantsByName(string name)
@@ -172,10 +179,19 @@ namespace MyGarden.DAL
 
             //var ofPlant = ofPlants.data.FirstOrDefault(p => p.attributes.binomial_name == gsPlant.scientific_names[0].name);
 
-            var resultPlant = new Plant[ofPlants.data.Length];
-            for (int i = 0; i < ofPlants.data.Length; i++)
+            var resultPlant = new List<Plant>();
+            int i = 0;
+            while (i < ofPlants.data.Length)
             {
                 var ofPlant = ofPlants.data[i];
+
+                if (ofPlant.attributes.description == null ||
+                    ofPlant.attributes.description.Length < 10 ||
+                    ofPlant.attributes.main_image_path.StartsWith("/assets"))
+                {
+                    i++;
+                    continue;
+                }
 
                 var plant = new Plant
                 {
@@ -191,12 +207,13 @@ namespace MyGarden.DAL
                     Row_spacing = ofPlant.attributes.row_spacing.GetValueOrDefault(),
                     Sun_requirements = ofPlant.attributes.sun_requirements,
                     Sowing_method = ofPlant.attributes.sowing_method,
-                    thumbnail_url = ofPlant.attributes.main_image_path,
+                    Img_url = ofPlant.attributes.main_image_path,
                 };
 
-                resultPlant[i] = plant;
+                resultPlant.Add(plant);
+                i++;
             }
-            return resultPlant;
+            return resultPlant.ToArray();
         }
 
     }
