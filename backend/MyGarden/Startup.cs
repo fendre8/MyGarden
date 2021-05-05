@@ -49,6 +49,7 @@ namespace MyGarden
                 options.UseSqlServer(Configuration.GetConnectionString("MyGardenDbContext")));
             services.AddScoped<DAL.IProfilesRepository, DAL.ProfileRepository>();
             services.AddScoped<DAL.IPlantsRepository, DAL.PlantsRepository>();
+            services.AddScoped<DAL.IIssueRepository, DAL.Repositories.IssueRepository>();
 
             services.AddIdentity<ApplicationUser, IdentityRole<int>>()
                 .AddEntityFrameworkStores<MyGardenDbContext>()
@@ -105,9 +106,13 @@ namespace MyGarden
                 options.SlidingExpiration = true;
             });
 
-            var mappingConfig = new MapperConfiguration(mc =>
-                mc.AddProfile(new MappingProfile())
+            var mappingConfig = new MapperConfiguration(mc => {
+                mc.AddProfile(new MappingProfile());
+                }
             );
+
+            IMapper mapper = mappingConfig.CreateMapper();
+
             services.AddSingleton(mappingConfig.CreateMapper());
 
             services.AddCors(options =>
