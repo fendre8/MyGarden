@@ -1,4 +1,5 @@
-﻿using MyGarden.API.DTO;
+﻿using Microsoft.EntityFrameworkCore;
+using MyGarden.API.DTO;
 using MyGarden.DAL.EF;
 using MyGarden.Models;
 using System;
@@ -19,7 +20,7 @@ namespace MyGarden.DAL.Repositories
             this.mapper = mapper;
         }
 
-        public NewIssueResponse CreateIssueForPlant(NewIssueModel issue)
+        public async Task<NewIssueResponse> CreateIssueForPlant(NewIssueModel issue)
         {
             var toInsert = new EF.DbModels.Issue
             {
@@ -29,9 +30,9 @@ namespace MyGarden.DAL.Repositories
                 Plant = db.Plants.FirstOrDefault(p => p.Id == issue.PlantId),
                 Is_open = true
             };
-            db.Issues.Add(toInsert);
+            await db.Issues.AddAsync(toInsert);
 
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             return new NewIssueResponse
             {
@@ -53,9 +54,55 @@ namespace MyGarden.DAL.Repositories
         }
 
 
-        public IEnumerable<Issue> List()
+        public async Task<IEnumerable<Issue>> List()
         {
-            return db.Issues.Select(mapper.Map<Issue>).ToList();
+            return db.Issues
+                .Include(i => i.Author).ThenInclude(u => u.Plants)
+                .Include(i => i.Plant)
+                .Include(i => i.Answers)
+                .Select(ToModel).ToList();
+        }
+
+        private static Issue ToModel(EF.DbModels.Issue value)
+        {
+            var answers = new List<Answer>();
+            foreach (var answer in value.Answers)
+            {
+                answers.Add(new Answer
+                {
+                    Author = answer.Author.UserName,
+                    Id = answer.Id,
+                    Text = answer.Text
+                });
+            }
+
+            var profile = new Profile
+            {
+                Id = value.Author.Id,
+                Email = value.Author.Email,
+                First_name = value.Author.First_name,
+                Last_name = value.Author.Last_name,
+                ImagePath = value.Author.ImagePath,
+                Username = value.Author.UserName,
+                Plants = null,
+                Friends = null,
+                Issues = null
+            };
+
+            var issue = new Issue
+            {
+                Id = value.Id,
+                Author = profile,
+                Description = value.Description,
+                Title = value.Title,
+                Plant = new IssuePlant
+                {  
+                    Id = value.Plant.Id,
+                    Name = value.Plant.Name,
+                },
+                Answers = answers,
+            };
+            return issue;
         }
     }
 }

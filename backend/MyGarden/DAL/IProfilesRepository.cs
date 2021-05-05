@@ -15,6 +15,7 @@ namespace MyGarden.DAL
         Task<Profile> Delete(int id);
 
         Task<FriendshipResponse> AddFriend(string username1, string username2);
+        Task<FriendshipDTO> DeleteFriendShip(string username1, string username2);
 
         Response InviteFriend(string username);
         Response AcceptFriendRequest();
