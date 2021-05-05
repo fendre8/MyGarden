@@ -14,13 +14,11 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import { Snackbar } from "@material-ui/core";
+import { Backdrop, CircularProgress, Snackbar } from "@material-ui/core";
 import { Alert } from '@material-ui/lab';
 
 
-import { onLogin } from "../http/Auth/auth.api";
-import { UserStatus } from "../Models/User/Session";
-import { Redirect } from "react-router";
+import { useAuth } from "../http/Auth/auth-context";
 
 
 function Copyright() {
@@ -59,48 +57,47 @@ const useStyles = makeStyles((theme) => ({
         top: 10,
         left: 10
     },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 100,
+        color: '#fff',
+    },
 }));
 
 export default function LoginPage() {
     const classes = useStyles();
+
+    const { login, loading, error } = useAuth();
 
     const [{ username, password }, setCredentials] = useState({
         username: '',
         password: ''
     });
 
-    const [error, setError] = useState('');
-
-    const [isLogin, setIsLogin] = useState(false);
+    const [innerError, setInnerError] = useState('');
 
     const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
         if (reason === 'clickaway') {
             return;
         }
-        setError("");
+        setInnerError("");
     }
 
 
-    const login = async (event: React.FormEvent) => {
+    const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault();
-        const response = await onLogin({
-            username,
-            password
-        })
-        if (response && response.error) {
-            setError(`${response.error.code} ${response.error.description}`);
-        }
-        else {
-            console.log("Redirect");
-            if (response.succes) setIsLogin(true);
-            console.log(response);
-            sessionStorage.setItem("token", response.token);
-        }
+
+        login({ username, password });
+        if (error !== undefined)
+            setInnerError(error);
     }
 
     return (
         <>
-            {isLogin && <Redirect to="/" />}
+            {loading &&
+                <Backdrop className={classes.backdrop} open={loading}>
+                    <CircularProgress color="inherit" />
+                </Backdrop>
+            }
             <IconButton aria-label="go-back" color="primary" size="medium" className={classes.back} href="/">
                 <ArrowBackIcon />
             </IconButton>
@@ -112,8 +109,8 @@ export default function LoginPage() {
                     </Avatar>
                     <Typography component="h1" variant="h5">
                         Sign in
-                </Typography>
-                    <form className={classes.form} noValidate onSubmit={login}>
+                    </Typography>
+                    <form className={classes.form} noValidate onSubmit={handleLogin}>
                         <TextField
                             variant="outlined"
                             margin="normal"
@@ -148,7 +145,7 @@ export default function LoginPage() {
                             control={<Checkbox value="remember" color="primary" />}
                             label="Remember me"
                         />
-                        <Snackbar open={error !== ""} autoHideDuration={5000} onClose={handleClose}>
+                        <Snackbar open={innerError !== ""} autoHideDuration={5000} onClose={handleClose}>
                             <Alert onClose={handleClose} severity="error">
                                 {error}
                             </Alert>
