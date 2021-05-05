@@ -11,7 +11,7 @@ class Plant {
     row_spacing: number = 0;
     sun_requirements: string = "";
     sowing_method: string = "";
-    thumbnail_url: string = "";
+    img_url: string = "";
     plant_time?: Date = new Date();
 }
 
