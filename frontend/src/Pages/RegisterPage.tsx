@@ -12,10 +12,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 
 
-import { onRegister } from '../http/Auth/auth.api';
-import { Redirect } from 'react-router-dom';
 import { Snackbar } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
+import { useAuth } from '../http/Auth/auth-context';
 
 
 function Copyright() {
@@ -53,6 +52,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function RegisterPage() {
     const classes = useStyles();
+    const { loading, error, signUp } = useAuth();
 
     const [{ first_name, last_name, username, email, password, repeatPassword }, setRegisterData] = useState({
         first_name: '',
@@ -67,33 +67,40 @@ export default function RegisterPage() {
         if (reason === 'clickaway') {
             return;
         }
-        setError("");
+        setInnerError("");
     }
 
-    const [error, setError] = useState('');
+    const [innerError, setInnerError] = useState('');
 
-    const [registered, setRegistered] = useState(false);
+    // const [registered, setRegistered] = useState(false);
 
-    const register = async (event: React.FormEvent) => {
+    const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
         if (password === repeatPassword) {
             //perform API
-            const response = await onRegister({ first_name, last_name, username, email, password })
 
-            if (response !== undefined) {
-                setError(response.description)
-            }
-            else if (response === undefined) {
-                setRegistered(true);
-            }
+            signUp({
+                email: email,
+                first_name: first_name,
+                last_name: last_name,
+                password: password,
+                username: username
+            })
+
+            // if (response !== undefined) {
+            //     setInnerError(response.description)
+            // }
+            // else if (response === undefined) {
+            //     setRegistered(true);
+            // }
         } else {
-            setError('Password and repeat password must match!');
+            setInnerError('Password and repeat password must match!');
         }
         console.log(error);
     }
 
     return (<>
-        {registered && <Redirect to="/login" />}
         <Container component="main" maxWidth="xs">
             <CssBaseline />
             <div className={classes.paper}>
@@ -103,7 +110,7 @@ export default function RegisterPage() {
                 <Typography component="h1" variant="h5">
                     Sign up
                 </Typography>
-                <form className={classes.form} noValidate onSubmit={register}>
+                <form className={classes.form} noValidate onSubmit={handleRegister}>
                     <Grid container spacing={2}>
                         <Grid item xs={12} sm={6}>
                             <TextField
@@ -223,7 +230,7 @@ export default function RegisterPage() {
                             />
                         </Grid>
                     </Grid>
-                    <Snackbar open={error !== ""} autoHideDuration={5000} onClose={handleClose}>
+                    <Snackbar open={innerError !== ""} autoHideDuration={5000} onClose={handleClose}>
                         <Alert onClose={handleClose} severity="error">
                             {error}
                         </Alert>
