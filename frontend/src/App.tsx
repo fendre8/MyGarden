@@ -1,34 +1,20 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-} from "react-router-dom";
-import LoginPage from "./Pages/LoginPage";
-import RegisterPage from "./Pages/RegisterPage";
-import MainPage from "./Pages/MainPage";
+import { AuthProvider, useAuth } from "./http/Auth/auth-context";
+import { BrowserRouter } from "react-router-dom";
+import MyRouter from "./Components/Routes/Router";
 
-const App: React.FC = () => {
+export default function App() {
+  const { user, loading, error, login, loggedIn, logout, setSession, session, signUp } = useAuth();
+
+  console.log("loggedin: ", loggedIn);
+
   return (
     <div className="App">
-      <Router>
-        <Switch>
-          <Route exact path="/">
-            <MainPage />
-          </Route>
-          {/* <Route path="/plants">
-              <PlantsPage />
-            </Route> */}
-          <Route path="/login">
-            <LoginPage />
-          </Route>
-          <Route path="/register">
-            <RegisterPage />
-          </Route>
-        </Switch>
-      </Router>
+      <BrowserRouter>
+        <AuthProvider>
+          <MyRouter />
+        </AuthProvider>
+      </BrowserRouter>
     </div>
   );
 }
-
-export default App;
