@@ -8,5 +8,6 @@ namespace MyGarden.API.DTO
     public class PlantRequest
     {
         public string plantName { get; set; }
+        public string plantTime { get; set; }
     }
 }
