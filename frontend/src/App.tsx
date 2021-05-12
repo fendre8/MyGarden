@@ -2,9 +2,10 @@ import React from "react";
 import { AuthProvider, useAuth } from "./http/Auth/auth-context";
 import { BrowserRouter } from "react-router-dom";
 import MyRouter from "./Components/Routes/Router";
+import { PlantsProvider } from "./Components/PlantsContext";
 
 export default function App() {
-  const { user, loading, error, login, loggedIn, logout, setSession, session, signUp } = useAuth();
+  const { loggedIn } = useAuth();
 
   console.log("loggedin: ", loggedIn);
 
@@ -12,7 +13,9 @@ export default function App() {
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
-          <MyRouter />
+          <PlantsProvider>
+            <MyRouter />
+          </PlantsProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>
