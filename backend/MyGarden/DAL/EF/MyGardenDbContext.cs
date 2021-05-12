@@ -114,7 +114,7 @@ namespace MyGarden.DAL.EF
 
                 entity.HasOne(p => p.Plant);
 
-                entity.HasMany(a => a.Answers);
+                entity.HasMany(a => a.Answers).WithOne();
             });
         }
 
