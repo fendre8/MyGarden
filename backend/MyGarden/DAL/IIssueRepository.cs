@@ -13,7 +13,10 @@ namespace MyGarden.DAL
 
         Task<NewIssueResponse> CreateIssueForPlant(NewIssueModel issue);
 
-        void AddCommentForIssue(Issue issue, Answer answer);
+        Task<Answer> AddAnswerToIssue(int issueId, string answerText, int userId);
 
+        Task<Issue> GetIssueById(int id);
+
+        Task<Issue> ToggleIssueIsOpen(int id);
     }
 }

@@ -20,15 +20,45 @@ namespace MyGarden.DAL.Repositories
             this.mapper = mapper;
         }
 
+        public async Task<IEnumerable<Issue>> List()
+        {
+            return db.Issues
+                .Include(i => i.Author).ThenInclude(u => u.Plants)
+                .Include(i => i.Plant)
+                .Include(i => i.Answers).ThenInclude(a => a.Author)
+                .Select(ToModel).ToList();
+        }
+
+        public async Task<Issue> GetIssueById(int id)
+        {
+            var dbRecord = await db.Issues
+                .Include(i => i.Author)
+                .Include(i => i.Plant)
+                .Include(i => i.Answers).ThenInclude(a => a.Author)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(i => i.Id == id);
+            if (dbRecord == null)
+                return null;
+            else
+                return ToModel(dbRecord);
+        }
+
         public async Task<NewIssueResponse> CreateIssueForPlant(NewIssueModel issue)
         {
+            var plant = await db.Plants.FirstOrDefaultAsync(p => p.Name.ToUpper() == issue.PlantName.ToUpper());
+            var user = await db.ApplicationUsers.FirstOrDefaultAsync(u => u.UserName == issue.Username);
+
+            if (user == null || plant == null) return null;
+
             var toInsert = new EF.DbModels.Issue
             {
                 Title = issue.Title,
                 Description = issue.Description,
-                Author = db.ApplicationUsers.FirstOrDefault(u => u.UserName == issue.Username),
-                Plant = db.Plants.FirstOrDefault(p => p.Id == issue.PlantId),
-                Is_open = true
+                Author = user,
+                Plant = plant,
+                Is_open = true,
+                Answers = new List<EF.DbModels.Answer>(),
+                Img_url = ""
             };
             await db.Issues.AddAsync(toInsert);
 
@@ -48,19 +78,48 @@ namespace MyGarden.DAL.Repositories
 
         }
 
-        public void AddCommentForIssue(Issue issue, Answer answer)
+        public async Task<Answer> AddAnswerToIssue(int issueId, string answerText, int userId)
         {
-            throw new NotImplementedException();
+            var user = await db.ApplicationUsers.FirstOrDefaultAsync(u => u.Id == userId);
+            var issue = await db.Issues
+                .Include(i => i.Answers)
+                .FirstOrDefaultAsync(i => i.Id == issueId);
+            if (user == null || issue == null) 
+                return null;
+            var answer = new EF.DbModels.Answer
+            {
+                Author = user,
+                Text = answerText
+            };
+
+            await db.Answers.AddAsync(answer);
+
+            issue.Answers.Add(answer);
+            await db.SaveChangesAsync();
+
+            return new Answer
+            {
+                Author = user.UserName,
+                Id = answer.Id,
+                Text = answerText
+            };
         }
 
-
-        public async Task<IEnumerable<Issue>> List()
+        public async Task<Issue> ToggleIssueIsOpen(int id)
         {
-            return db.Issues
-                .Include(i => i.Author).ThenInclude(u => u.Plants)
+            var issue = await db.Issues
+                .Include(i => i.Author)
+                .Include(i => i.Answers).ThenInclude(a => a.Author)
                 .Include(i => i.Plant)
-                .Include(i => i.Answers)
-                .Select(ToModel).ToList();
+                .FirstOrDefaultAsync(i => i.Id == id);
+            if (issue == null)
+                return null;
+            else
+            {
+                issue.Is_open = !issue.Is_open;
+                await db.SaveChangesAsync();
+                return ToModel(issue);
+            }
         }
 
         private static Issue ToModel(EF.DbModels.Issue value)
@@ -95,6 +154,7 @@ namespace MyGarden.DAL.Repositories
                 Author = profile,
                 Description = value.Description,
                 Title = value.Title,
+                Is_open = value.Is_open,
                 Plant = new IssuePlant
                 {  
                     Id = value.Plant.Id,
@@ -104,5 +164,6 @@ namespace MyGarden.DAL.Repositories
             };
             return issue;
         }
+
     }
 }
