@@ -43,9 +43,9 @@ export const getPlantById = async (id: number): Promise<Plant> => {
         });
 };
 
-export const addNewPlant = async (username: string, plant: string): Promise<Plant> => {
+export const addNewPlant = async (username: string, plant: string, plantTime: string): Promise<Plant> => {
     return await axios
-        .post(baseUrl + "profiles/name/" + username + "/plant",{ plantName : plant },
+        .post(baseUrl + "profiles/name/" + username + "/plant",{ plantName : plant, plantTime : plantTime },
         { headers: headers })
         .then(response => {
             console.log(response.data);
