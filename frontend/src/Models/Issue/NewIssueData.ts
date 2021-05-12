@@ -5,7 +5,7 @@ import Answer from "./Answer";
 class NewIssueData {
     title: string = "";
     username: string = "";
-    plantid: number = 0;
+    plantName: string = "";
     description: string = "";
     image_path?: string = "";
 }
