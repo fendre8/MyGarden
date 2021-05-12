@@ -25,15 +25,17 @@ const useStyles = makeStyles((theme: Theme) =>
 
 export const MyPlants = () => {
     const classes = useStyles();
+    const auth = useAuth();
 
     const [plants, setPlants] = useState<Plant[]>([]);
-    const auth = useAuth();
     //const history = useHistory();
 
     const getMyPlants = async () => {
-        const _plants = (await getUserPlants(auth.user!.username));
-        if (_plants !== undefined)
-            setPlants(_plants);
+        if (auth.session) {
+            const _plants = (await getUserPlants(auth.session.user.username));
+            if (_plants !== undefined)
+                setPlants(_plants);
+        }
     }
 
     const [openDialog, setOpenDialog] = useState(false);
@@ -45,7 +47,7 @@ export const MyPlants = () => {
     useEffect(() => {
         axios.defaults.headers.common['Authorization'] = "Bearer " + auth.session?.token;
         getMyPlants();
-    }, [openDialog]);
+    }, []);
 
     return (
         <div>
@@ -62,7 +64,7 @@ export const MyPlants = () => {
                             <Grid container justify="center" spacing={3} >
                                 {plants.map(plant => (
                                     <Grid key={plant.id} item>
-                                        <PlantCard plant={plant} />
+                                        <PlantCard plant={plant} public={false} />
                                     </Grid>
                                 ))}
                             </Grid>
