@@ -47,7 +47,7 @@ namespace MyGarden
             //});
             services.AddDbContext<MyGardenDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("MyGardenDbContext")));
-            services.AddScoped<DAL.IProfilesRepository, DAL.ProfileRepository>();
+            services.AddScoped<DAL.IProfilesRepository, DAL.ProfilesRepository>();
             services.AddScoped<DAL.IPlantsRepository, DAL.PlantsRepository>();
             services.AddScoped<DAL.IIssueRepository, DAL.Repositories.IssueRepository>();
 
