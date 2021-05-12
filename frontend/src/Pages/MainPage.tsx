@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Container, createStyles, Grid, makeStyles, Theme } from '@material-ui/core';
 import MyNavbar from '../Components/MyNavbar';
 import PlantCard from '../Components/PlantCard';
-import { PlantsProvider } from '../Components/PlantsContext';
+import { PlantsContext, PlantsProvider } from '../Components/PlantsContext';
 import Plant from '../Models/Plant/Plant';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -21,22 +21,27 @@ function MainPage() {
 
     // const { user, logout } = useAuth();
 
+    const plantsContext = useContext(PlantsContext);
     const [plants, setPlants] = useState<Plant[]>([]);
     const [search, setSearch] = useState("");
 
-    const showResult = (plants: Plant[] | undefined, search: string) => {
+
+    const showResult = async (plants: Plant[] | undefined, search: string) => {
         if (plants !== undefined) {
             setPlants(plants);
-            setSearch(search);
         }
+        setSearch(search);
     }
 
+
     useEffect(() => {
-    }, [plants])
+        if (plantsContext) {
+            setPlants(plantsContext.plants);
+        }
+    }, [search])
 
     return (
         <div className={classes.root}>
-            <PlantsProvider>
                 <MyNavbar sendSearchResult={showResult} />
                 <Container maxWidth="lg">
                     {plants.length !== 0 && <h2>Search result for {search}: {plants.length}</h2>}
@@ -45,14 +50,13 @@ function MainPage() {
                             <Grid container justify="center" spacing={3} >
                                 {plants.map(plant => (
                                     <Grid key={plant.id} item>
-                                        <PlantCard plant={plant} />
+                                        <PlantCard plant={plant} public={true} />
                                     </Grid>
                                 ))}
                             </Grid>
                         </Grid>
                     </Grid>
                 </Container>
-            </PlantsProvider>
         </div>
     );
 }
