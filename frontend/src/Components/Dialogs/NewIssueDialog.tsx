@@ -3,10 +3,8 @@ import { Button, createStyles, makeStyles } from "@material-ui/core";
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@material-ui/core";
 import React from "react";
 import { useAuth } from "../../http/Auth/auth-context";
-import { getUserPlants } from "../../http/PlantDataLoader";
-import { addNewIssue } from "../../http/ProfileDataLoader";
 import NewIssueData from "../../Models/Issue/NewIssueData";
-import Plant from "../../Models/Plant/Plant";
+import IssueAPI from "../../http/IssueAPI";
 
 type DialogProps = {
     title: string,
@@ -30,40 +28,39 @@ export const NewIssueDialog = (props: DialogProps) => {
     //const [open, setOpen] = React.useState(false);
     const [title, setTitle] = React.useState("");
     const [plantName, setPlantName] = React.useState("");
-    const [plantId, setPlantId] = React.useState(0);
     const [description, setDescription] = React.useState("");
-    const [imagePath, setImagePath] = React.useState("");
-    const [image, setImage] = React.useState<File>();
+    // const [imagePath, setImagePath] = React.useState("");
+    // const [image, setImage] = React.useState<File>();
 
     const handleClose = () => {
         props.setOpenDialog();
     };
 
-    const userPlants = async () => {
-        if (auth.user) {
-            const plants = await getUserPlants(auth.user.username);
-            const plant = plants.find(plant => plant.name === plantName);
-            if (plant !== undefined)
-                setPlantId(plant?.id);
-        }
-    }
+    // const userPlants = async () => {
+    //     if (auth.user) {
+    //         const plants = await getUserPlants(auth.user.username);
+    //         const plant = plants.find(plant => plant.name === plantName);
+    //         if (plant !== undefined)
+    //             setPlantId(plant?.id);
+    //     }
+    // }
 
     const handleNewIssue = async () => {
         handleClose();
-        await userPlants();
+        //await userPlants();
         const data: NewIssueData = {
             title: title,
             description: description,
             username: auth.user!.username,
-            plantid: plantId
+            plantName: plantName
         }
-        const issue = await addNewIssue(data);
+        const issue = await IssueAPI.addNewIssue(data);
     }
 
-    const imageSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files != null)
-            setImage(event.target.files[0]);
-    }
+    // const imageSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     if (event.target.files != null)
+    //         setImage(event.target.files[0]);
+    // }
 
     return (
         <div>
