@@ -15,7 +15,7 @@ export const NewPlantDialog = (props: DialogProps) => {
 
     //const [open, setOpen] = React.useState(false);
     const [plantName, setPlantName] = React.useState("");
-    const [plantTime, setPlantTime] = React.useState("");
+    const [plantTime, setPlantTime] = React.useState(new Date().toISOString().split('T')[0]);
 
     const handleClose = () => {
         props.setOpenDialog();
@@ -23,7 +23,7 @@ export const NewPlantDialog = (props: DialogProps) => {
 
     const handleNewPlant = async () => {
         handleClose();
-        const plant = await addNewPlant(auth.user!.username, plantName)
+        const plant = await addNewPlant(auth.user!.username, plantName, plantTime);
     }
 
     return (
@@ -51,6 +51,7 @@ export const NewPlantDialog = (props: DialogProps) => {
                             shrink: true,
                         }}
                         onChange={ (e) => setPlantTime(e.target.value)}
+                        defaultValue={new Date().toISOString().split('T')[0]}
                     />
                 </DialogContent>
                 <DialogActions>
