@@ -11,6 +11,7 @@ namespace MyGarden.DAL
         Task<IReadOnlyCollection<Profile>> List();
         Task<Profile> FindById(int id);
         Task<Profile> FindByUserName(string username);
+        Task<Profile[]> GetUserFriendsByName(string username);
         Task<Profile> Insert(EF.DbModels.ApplicationUser profile);
         Task<Profile> Delete(int id);
 
