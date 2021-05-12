@@ -15,7 +15,7 @@ namespace MyGarden.DAL
 
         Task<IEnumerable<Plant>> List();
 
-        Task<Plant> AddPlant(string plantName, string username = null);
+        Task<Plant> AddPlant(string plantName, string username = null, string plantTime = "");
 
         Task<OFPlantResult> OfFindPlantByName(string plantName);
 
