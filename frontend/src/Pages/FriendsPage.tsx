@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Button, Container, createStyles, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Theme } from '@material-ui/core';
 import MyNavbar from '../Components/MyNavbar';
 import { useAuth } from '../http/Auth/auth-context';
-import { deleteFriend, getUserByName } from '../http/ProfileDataLoader';
+import { deleteFriend, getUserByName, getUserFriendsByName } from '../http/ProfileDataLoader';
 import User from '../Models/User/User';
 import { FriendInviteDialog } from '../Components/Dialogs/FriendInviteDialog';
 import { IconButton } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { Link } from 'react-router-dom';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -24,13 +25,13 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-function FriendsPage() {
+export const FriendsPage = () => {
     const classes = useStyles();
-
     const auth = useAuth();
 
-    const [friends, setFriends] = useState<string[]>([]);
     const [user, setUser] = useState<User>();
+    const [friends, setFriends] = useState<User[]>([]);
+
     const [isLoading, setLoading] = useState(true);
     const [openDialog, setOpenDialog] = useState(false);
 
@@ -38,7 +39,17 @@ function FriendsPage() {
         const arrayCopy = friends.filter((row, id) => id !== rowId);
         setFriends(arrayCopy);
         if (auth.session) {
-            await deleteFriend(auth.session.user.username, friends[rowId]);
+            await deleteFriend(auth.session.user.username, friends[rowId].username);
+        }
+    }
+
+    const getFriends = async () => {
+        if (auth.session) {
+            const _friends = await getUserFriendsByName(auth.session.user.username);
+            if (_friends) {
+                setFriends(_friends);
+                setLoading(false);
+            }
         }
     }
 
@@ -47,18 +58,9 @@ function FriendsPage() {
     }
 
     useEffect(() => {
-        async function getfriends() {
-            if (auth.session) {
-                const _user = await getUserByName(auth.user!.username);
-                setUser(_user);
-                if (_user.friends !== undefined) {
-                    setFriends(_user.friends);
-                    setLoading(false);
-                }
-            }
-        }
-        getfriends();
-    }, []);
+        getFriends();
+        console.log(friends);
+    }, [auth.session, isLoading]);
 
     return (
         <div>
@@ -67,6 +69,7 @@ function FriendsPage() {
                 title="New friend"
                 openDialog={openDialog}
                 setOpenDialog={() => setOpenDialog(!openDialog)}
+                setLoading={() => setLoading(true)}
             />
             <Container>
                 <Button variant="contained" color="primary" className={classes.newfriendbutton} onClick={() => handleInviteFriend()}>Invite friend</Button>
@@ -83,24 +86,26 @@ function FriendsPage() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {friends && friends.map((friend, idx) => (
+                            {friends.length !== 0 && <>
+                                {friends.map((friend, idx) => (
                                 <TableRow key={idx}>
                                     <TableCell component="th" scope="row">
-                                        {friend}
+                                        <Link to={`/datasheet/${friend.username}`}>{friend.username}</Link>
                                     </TableCell>
                                     <TableCell>
-                                        Email
+                                        {friend.email}
                                     </TableCell>
                                     <TableCell>
-                                        1
+                                        {friend.plants?.length}
                                     </TableCell>
                                     <TableCell align="right">
                                         <IconButton aria-label="delete" color="secondary" onClick={() => removeFriend(idx)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </TableCell>
-                                </TableRow>
-                            ))}
+                                </TableRow>))}
+                            </>
+                            }
                         </TableBody>
                     </Table>
                 </TableContainer>
