@@ -7,7 +7,8 @@ import { inviteFriend } from "../../http/ProfileDataLoader";
 type DialogProps = {
     title: string,
     openDialog: boolean,
-    setOpenDialog: () => void
+    setOpenDialog: () => void,
+    setLoading: () => void
 };
 
 export const FriendInviteDialog = (props: DialogProps) => {
@@ -23,7 +24,7 @@ export const FriendInviteDialog = (props: DialogProps) => {
     const handleNewFriendInvite = async () => {
         handleClose();
         if (auth.user) {
-            const friendship = await inviteFriend(auth.user.username, friendName);
+            const friendship = await inviteFriend(auth.user.username, friendName).then(() => props.setLoading());
         }
     }
 
