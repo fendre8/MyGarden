@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, CardMedia, CircularProgress, createStyles, makeStyles, Theme, Typography } from '@material-ui/core';
+import { Box, Button, CardMedia, CircularProgress, createStyles, makeStyles, Theme, Typography } from '@material-ui/core';
 import { Card, CardContent } from '@material-ui/core';
 
 import MyNavbar from '../Components/MyNavbar';
@@ -8,8 +8,9 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 
 import plant1 from '../static/pics/issues/plant1.jpg';
-import { getAllIssues } from '../http/ProfileDataLoader';
 import { NewIssueDialog } from '../Components/Dialogs/NewIssueDialog';
+import { useHistory } from 'react-router';
+import IssueAPI from "../http/IssueAPI";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -25,13 +26,14 @@ const useStyles = makeStyles((theme: Theme) =>
         card: {
             display: 'flex',
             background: "rgb(232,232,232)",
+            cursor: "pointer",
         },
         details: {
             display: 'flex',
             flexDirection: 'column',
         },
         cardcontent: {
-            flex: '1 0 auto',
+            // flex: '1 0 auto',
         },
         cover: {
             width: "150px",
@@ -50,18 +52,18 @@ const useStyles = makeStyles((theme: Theme) =>
 
 function IssuesPage() {
     const classes = useStyles();
-
+    const history = useHistory();
     const [issues, setIssues] = useState<Issue[]>([]);
     const [isloading, setIsloading] = useState(true);
     const [openDialog, setOpenDialog] = useState(false);
 
     useEffect(() => {
         async function getIssues() {
-            const _issues = await getAllIssues();
-            if (issues) {
+            const _issues = await IssueAPI.getAllIssues();
+            if (_issues) {
                 setIssues(_issues);
-                setIsloading(false);
             }
+            setIsloading(false);
         }
         getIssues();
     }, []);
@@ -70,25 +72,33 @@ function IssuesPage() {
         setOpenDialog(true);
     }
 
+    function handleCardClick(id: number) {
+        history.push(`/issues/${id}`);
+    }
+
     const IssueCard = (props: { issue: Issue }) => {
 
         return (
-            <Card className={classes.card} >
+            <Card className={classes.card} onClick={() => handleCardClick(props.issue.id)}>
                 <CardMedia
                     className={classes.cover}
                     image={plant1}
                 />
                 <div className={classes.details} >
-                    <CardContent className={classes.cardcontent} >
-                        <Typography component="h5" variant="h5" >
-                            {props.issue.title}
-                        </Typography>
-                        <Typography variant="subtitle1" color="textSecondary" >
-                            {props.issue.author.username}
-                        </Typography>
-                        <Typography>
-                            {props.issue.description}
-                        </Typography>
+                    <CardContent className={classes.cardcontent}>
+                        <Box display="flex" flexDirection="row">
+                            <Box>
+                                <Typography component="h5" variant="h5" >
+                                    {props.issue.title}
+                                </Typography>
+                                <Typography variant="subtitle1" color="textSecondary" >
+                                    {props.issue.author.username}
+                                </Typography>
+                                <Typography>
+                                    {props.issue.description}
+                                </Typography>
+                            </Box>
+                        </Box>
                     </CardContent>
                 </div>
             </Card>
@@ -117,20 +127,20 @@ function IssuesPage() {
                                 </Grid>
                             ))}
                     </Grid>
-                    {(issues.filter(issue => !issue.is_open).length !== 0) && 
-                    (<>
-                        <Typography variant="h4" component="h2" className={classes.heading}>
-                            Solved
+                    {(issues.filter(issue => !issue.is_open).length !== 0) &&
+                        (<>
+                            <Typography variant="h4" component="h2" className={classes.heading}>
+                                Solved
                         </Typography>
-                        <Grid container spacing={3}>
-                            {isloading ? (<CircularProgress />)
-                                : issues.filter(issue => !issue.is_open).map(issue => (
-                                    <Grid item xs={12} key={issue.id}>
-                                        <IssueCard issue={issue} />
-                                    </Grid>
-                                ))}
-                        </Grid>
-                    </>)}
+                            <Grid container spacing={3}>
+                                {isloading ? (<CircularProgress />)
+                                    : issues.filter(issue => !issue.is_open).map(issue => (
+                                        <Grid item xs={12} key={issue.id}>
+                                            <IssueCard issue={issue} />
+                                        </Grid>
+                                    ))}
+                            </Grid>
+                        </>)}
                 </Container>
             </div>
         </div>
