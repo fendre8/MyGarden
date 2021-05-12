@@ -32,18 +32,28 @@ namespace MyGarden.API.Controllers
             return await issues_repository.List();
         }
 
+        [HttpGet("id/{id}")]
+        public async Task<ActionResult<Issue>> GetIssueById([FromRoute] int id)
+        {
+            var response = await issues_repository.GetIssueById(id);
+            if (response == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(response);
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<NewIssueResponse>> CreateIssue([FromBody] NewIssueModel issue)
         {
-            var user = await profiles_repository.FindByUserName(issue.Username);
-            if (user == null)
-                return BadRequest();
-            var plant = plants_repository.GetPlantById(issue.PlantId);
-            if (plant == null)
-                return BadRequest();
             var result = await issues_repository.CreateIssueForPlant(issue);
+
+            if (result == null) return BadRequest();
 
             return Created(nameof(CreateIssue),new NewIssueResponse
             {
@@ -58,5 +68,28 @@ namespace MyGarden.API.Controllers
             });
         }
 
+        [HttpPost("{issueId}")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> AddAnswerToIssue([FromRoute] int issueId, [FromBody] NewAnswerModel answer)
+        {
+            var result = await issues_repository.AddAnswerToIssue(issueId, answer.answerText, answer.userId);
+            if (result == null)
+                return BadRequest();
+            else
+                return CreatedAtAction(nameof(AddAnswerToIssue), result);
+        }
+
+        [HttpPut("id/{issueId}/isopen")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Issue>> ToggleIssueIsOpen([FromRoute] int issueId)
+        {
+            var result = await issues_repository.ToggleIssueIsOpen(issueId);
+            if (result == null)
+                return NotFound();
+            else
+                return Ok(result);
+        }
     }
 }
