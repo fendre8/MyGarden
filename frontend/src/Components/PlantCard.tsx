@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
@@ -28,18 +28,22 @@ const useStyles = makeStyles({
 });
 
 
-export default function PlantCard(props: { plant: Plant }) {
+export default function PlantCard(props: { plant: Plant, public: boolean }) {
   const classes = useStyles();
   const history = useHistory();
-  const loggedIn = useAuth();
+  const [imagePath, setImagePath] = useState("");
+  const auth = useAuth();
 
   const handleClickOnPlant = () => {
-    history.push(`/plant/${props.plant.id}`);
+    if (props.public)
+      history.push(`/plant/public/${props.plant.id}`);
+    else
+      history.push(`/plant/${props.plant.id}`);
   }
 
   return (<>
     <Card className={classes.root}>
-      <CardActionArea>
+      <CardActionArea onClick={() => handleClickOnPlant()}>
         <CardMedia
           className={classes.media}
           image={props.plant.img_url}
