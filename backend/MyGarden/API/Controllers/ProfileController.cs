@@ -55,6 +55,18 @@ namespace MyGarden.API.Controllers
                 return Ok(value);
         }
 
+        [HttpGet("name/{username}/friends")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Profile>> GetUserFriendsByName(string username)
+        {
+            var value = await profile_repository.GetUserFriendsByName(username);
+            if (value == null)
+                return NotFound();
+            else
+                return Ok(value);
+        }
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -115,7 +127,7 @@ namespace MyGarden.API.Controllers
         [HttpPost("name/{username}/plant")]
         public async Task<ActionResult> AddPlantToGarden([FromRoute] string username, [FromBody] PlantRequest _plant)
         {
-            var plant = await plant_repository.AddPlant(_plant.plantName, username);
+            var plant = await plant_repository.AddPlant(_plant.plantName, username, _plant.plantTime);
             if (plant != null)
             {
                 return Created(nameof(AddPlantToGarden), plant);
