@@ -9,7 +9,6 @@ import moment from "moment";
 const useStyles = makeStyles((theme) => ({
     paper: {
         marginTop: "2rem",
-        backgroundColor: "rgb(232,232,232)",
         marginBottom: "2rem",
         paddingBottom: "1rem",
     },
