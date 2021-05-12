@@ -27,6 +27,9 @@ import { getPlants } from '../http/PlantDataLoader';
 import { PlantsContext } from './PlantsContext';
 import { useHistory } from 'react-router';
 import { useAuth } from '../http/Auth/auth-context';
+import { Session } from '../Models/User/Session';
+import axios from 'axios';
+import { Backdrop, CircularProgress } from '@material-ui/core';
 
 const drawerWidth = 240;
 
@@ -102,6 +105,10 @@ const useStyles = makeStyles((theme: Theme) =>
     drawerPaper: {
       width: drawerWidth,
     },
+    backdrop: {
+      zIndex: theme.zIndex.drawer + 2,
+      color: '#fff',
+    },
   }),
 );
 
@@ -110,7 +117,9 @@ const MyNavbar = (props: { sendSearchResult?: (plants: Plant[] | undefined, sear
   const plantContent = useContext(PlantsContext);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [plants, setPlants] = useState<Plant[]>();
 
+  const history = useHistory();
   const auth = useAuth();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -126,12 +135,16 @@ const MyNavbar = (props: { sendSearchResult?: (plants: Plant[] | undefined, sear
     setAnchorEl(null);
   };
 
+  const handleDatasheet = () => {
+    handleMenuClose();
+    history.push(`/datasheet/${auth.user?.username}`);
+  }
+
   const handleLogout = () => {
     setAnchorEl(null);
     auth.logout();
     history.replace("/");
   }
-
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent,) => {
     if (
@@ -144,171 +157,180 @@ const MyNavbar = (props: { sendSearchResult?: (plants: Plant[] | undefined, sear
     setDrawerState(open);
   };
 
+  const handleClickMyPlants = (_path: string) => {
+    if (!auth.loggedIn) return;
+    let path = "/" + _path;
+    history.push(path);
+  }
+
   //Searching
   const searchPlants = async (plantName: string) => {
     setLoading(true);
     if (search === '') return;
-    await getPlants(plantName)
-      .then((plants) => {
-        plantContent?._setPlants(plants!)
-  })
-    .then(() => console.log(plantContent?._plants));
-    handleSearch();
+    const _plants = await getPlants(plantName);
+    if (_plants) {
+      plantContent?.setPlants(_plants);
+      setPlants(_plants);
+    }
+    await handleSearch();
     setLoading(false);
   }
 
-const handleSearch = () => {
-  const plants = plantContent?._plants;
-  console.log(plants);
-  if (props.sendSearchResult)
-    props.sendSearchResult(plants, search);
-}
-
-const StartSearch = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-  if (e.key === "Enter") {
-    searchPlants(search);
-    e.currentTarget.value = "";
+  const handleSearch = async () => {
+    console.log(plantContent?.plants);
+    if (props.sendSearchResult)
+      props.sendSearchResult(plants, search);
+    setSearch("");
   }
-}
 
-useEffect(() => {
-  const session = auth.session;
-  console.log(auth);
-  searchPlants(search);
-}, [])
+  const StartSearch = async (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.key === "Enter") {
+      await searchPlants(search);
+    }
+  }
 
-const menuId = 'primary-search-account-menu';
-const renderMenu = (
-  <Menu
-    anchorEl={anchorEl}
-    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-    id={menuId}
-    keepMounted
-    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-    open={isMenuOpen}
-    onClose={handleMenuClose}
-  >
-    <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-    <MenuItem onClick={handleLogout} >Logout</MenuItem>
-  </Menu>
-);
+  useEffect(() => {
+    let session = auth.session;
+    if (session === undefined) {
+      session = JSON.parse(localStorage.getItem("session")!) as Session;
+    }
+    auth.setSession(session);
+    if (session) {
+      axios.defaults.headers.common["Authorization"] = "Bearer " + session.token;
+    }
+  }, [])
 
-const history = useHistory();
 
-const handleClickMyPlants = (_path: string) => {
-  if (!auth.loggedIn) return;
-  let path = "/" + _path;
-  history.push(path);
-}
+  const menuId = 'primary-search-account-menu';
+  const renderMenu = (
+    <Menu
+      anchorEl={anchorEl}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      id={menuId}
+      keepMounted
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      open={isMenuOpen}
+      onClose={handleMenuClose}
+    >
+      <MenuItem onClick={handleDatasheet}>Profile</MenuItem>
+      <MenuItem onClick={handleLogout} >Logout</MenuItem>
+    </Menu>
+  );
 
-const list = () => (
-  <div
-    className={`${classes.list} ${classes.fullList}`}
-    role="presentation"
-    onClick={toggleDrawer(false)}
-    onKeyDown={toggleDrawer(false)}
-  >
-    <List>
-      <ListItem button onClick={() => handleClickMyPlants("plants")}>
-        <ListItemIcon>
-          <SpaIcon />
-        </ListItemIcon>
-        <ListItemText primary={"My plants"} />
-      </ListItem>
-      <ListItem button onClick={() => handleClickMyPlants("friends")}>
-        <ListItemIcon><ContactsIcon /></ListItemIcon>
-        <ListItemText primary={"Friends"} />
-      </ListItem>
-      <ListItem button onClick={() => handleClickMyPlants("issues")}>
-        <ListItemIcon><ReportProblemIcon /></ListItemIcon>
-        <ListItemText primary={"Issues"} />
-      </ListItem>
-    </List>
-    <Divider />
-  </div>
-);
+  const list = () => (
+    <div
+      className={`${classes.list} ${classes.fullList}`}
+      role="presentation"
+      onClick={toggleDrawer(false)}
+      onKeyDown={toggleDrawer(false)}
+    >
+      <List>
+        <ListItem button onClick={() => handleClickMyPlants("plants")}>
+          <ListItemIcon>
+            <SpaIcon />
+          </ListItemIcon>
+          <ListItemText primary={"My plants"} />
+        </ListItem>
+        <ListItem button onClick={() => handleClickMyPlants("friends")}>
+          <ListItemIcon><ContactsIcon /></ListItemIcon>
+          <ListItemText primary={"Friends"} />
+        </ListItem>
+        <ListItem button onClick={() => handleClickMyPlants("issues")}>
+          <ListItemIcon><ReportProblemIcon /></ListItemIcon>
+          <ListItemText primary={"Issues"} />
+        </ListItem>
+      </List>
+      <Divider />
+    </div>
+  );
 
-return (
-  <div className={classes.grow}>
-    <AppBar position="static">
-      <Toolbar>
-        <IconButton
-          edge="start"
-          className={classes.menuButton}
-          color="inherit"
-          aria-label="open drawer"
-          onClick={toggleDrawer(true)}
-        >
-          <MenuIcon />
-        </IconButton>
-        <React.Fragment>
-          <Drawer
-            anchor="left"
-            open={drawerState}
-            onClose={toggleDrawer(false)}
-            className={classes.drawer}
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-          >
-            {list()}
-          </Drawer>
-        </React.Fragment>
-        <Typography className={classes.title} variant="h6" noWrap onClick={() => {
-          history.push("/");
-        }} >
-          MyGarden App
-          </Typography>
-        <div className={classes.search}>
+  return (
+    <div className={classes.grow}>
+      { loading &&
+        <Backdrop className={classes.backdrop} open={loading}>
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      }
+      <AppBar position="static">
+        <Toolbar>
           <IconButton
-            edge="end"
+            edge="start"
+            className={classes.menuButton}
             color="inherit"
-            size="small"
-            onClick={() => {
-              searchPlants(search)
-            }
-            }>
-            <div className={classes.searchIcon}>
-              <SearchIcon />
-            </div>
+            aria-label="open drawer"
+            onClick={toggleDrawer(true)}
+          >
+            <MenuIcon />
           </IconButton>
-          <InputBase
-            placeholder="Search…"
-            classes={{
-              root: classes.inputRoot,
-              input: classes.inputInput,
-            }}
-            inputProps={{ 'aria-label': 'search' }}
-            onChange={(event) => setSearch(event.target.value)}
-            onKeyUp={(event) => StartSearch(event)}
-          />
-        </div>
-        <div className={classes.grow} />
-        {auth.loggedIn !== false ?
-          <>
-            <Typography variant="h6" noWrap>
-              {auth.user && auth.user.username}
-            </Typography>
-            <div className={classes.sectionDesktop}>
-              <IconButton
-                edge="end"
-                aria-label="account of current user"
-                aria-controls={menuId}
-                aria-haspopup="true"
-                onClick={handleProfileMenuOpen}
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
-            </div>
-          </>
-          : <Button color="inherit" href="/login">Login</Button>
-        }
-      </Toolbar>
-    </AppBar>
-    {renderMenu}
-  </div>
-);
+          <React.Fragment>
+            <Drawer
+              anchor="left"
+              open={drawerState}
+              onClose={toggleDrawer(false)}
+              className={classes.drawer}
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+            >
+              {list()}
+            </Drawer>
+          </React.Fragment>
+          <Typography className={classes.title} variant="h6" noWrap onClick={() => {
+            history.push("/");
+          }} >
+            MyGarden App
+          </Typography>
+          <div className={classes.search}>
+            <IconButton
+              edge="end"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                searchPlants(search)
+              }
+              }>
+              <div className={classes.searchIcon}>
+                <SearchIcon />
+              </div>
+            </IconButton>
+            <InputBase
+              placeholder="Search…"
+              classes={{
+                root: classes.inputRoot,
+                input: classes.inputInput,
+              }}
+              value={search}
+              inputProps={{ 'aria-label': 'search' }}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyUp={(event) => StartSearch(event)}
+            />
+          </div>
+          <div className={classes.grow} />
+          {auth.loggedIn !== false ?
+            <>
+              <Typography variant="h6" noWrap>
+                {auth.user && auth.user.username}
+              </Typography>
+              <div className={classes.sectionDesktop}>
+                <IconButton
+                  edge="end"
+                  aria-label="account of current user"
+                  aria-controls={menuId}
+                  aria-haspopup="true"
+                  onClick={handleProfileMenuOpen}
+                  color="inherit"
+                >
+                  <AccountCircle />
+                </IconButton>
+              </div>
+            </>
+            : <Button color="inherit" href="/login">Login</Button>
+          }
+        </Toolbar>
+      </AppBar>
+      {renderMenu}
+    </div>
+  );
 }
 
 export default MyNavbar;
