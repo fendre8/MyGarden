@@ -8,6 +8,8 @@ import PlantsPage from '../../Pages/PlantsPage';
 import RegisterPage from '../../Pages/RegisterPage';
 import PlantDetailsPage from '../../Pages/PlantDetailsPage';
 import { AuthenticatedRoute } from './AuthenticatedRoute';
+import { IssueDetailsPage } from '../../Pages/IssueDetailsPage';
+import { DataSheetPage } from '../../Pages/DataSheetPage';
 
 export default function MyRouter() {
     return (
@@ -22,6 +24,11 @@ export default function MyRouter() {
                 path="/plant/:id"
                 component={PlantDetailsPage}
             />
+            <Route
+                exact
+                path="/plants/public/:id"
+                component={PlantDetailsPage}
+            />
             <AuthenticatedRoute
                 exact
                 path="/issues"
@@ -29,8 +36,18 @@ export default function MyRouter() {
             />
             <AuthenticatedRoute
                 exact
+                path="/issues/:id"
+                component={IssueDetailsPage}
+            />
+            <AuthenticatedRoute
+                exact
                 path="/friends"
                 component={FriendsPage}
+            />
+            <Route
+                exact
+                path="/datasheet/:username"
+                component={DataSheetPage}
             />
             <Route
                 exact
